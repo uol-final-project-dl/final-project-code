@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\VectorKB\ChunkEmbeddingService;
+use App\Services\VectorDB\ChunkEmbeddingService;
 use Illuminate\Console\Command;
 
 class Playground extends Command
@@ -37,7 +37,7 @@ class Playground extends Command
 
     public function handle(): void
     {
-        $file = '/path/to/your/file.txt'; // Replace with your file path
-        $this->chunkEmbeddingService->saveFileEmbedding($file);
+        $codeFile = '/path/to/your/file.txt';
+        $this->chunkEmbeddingService->saveFileEmbedding($codeFile);
     }
 }

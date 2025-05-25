@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS kb_chunks (
   id       TEXT PRIMARY KEY,
   content  TEXT,
   metadata JSONB,
-  embed    vector(1024)
+  embed    vector(1536)
 );
 
 -- Index for ANN search

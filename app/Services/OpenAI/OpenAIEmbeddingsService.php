@@ -10,7 +10,7 @@ class OpenAIEmbeddingsService
     {
         $resp = OpenAI::embeddings()->create([
             'model' => 'text-embedding-3-small',
-            'dimensions' => 1024,
+            'dimensions' => 1536,
             'input' => $text,
         ]);
 

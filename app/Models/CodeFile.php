@@ -2,17 +2,24 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property string $content
+ * @property string $name
+ * @property string $path
+ * @property string $type
+ * @property string $summary
+ */
 class CodeFile extends Model
 {
-    use HasFactory, Notifiable;
-
+    protected $table = 'code_files';
+    
     protected $fillable = [
         'name',
         'path',
+        'type',
+        'summary',
         'content',
     ];
 

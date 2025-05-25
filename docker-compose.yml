@@ -1,0 +1,127 @@
+networks:
+    uol-network:
+
+services:
+    server:
+        container_name: com-uol-nginx
+        volumes:
+            - .:/var/www/html
+        build:
+            context: .
+            dockerfile: docker/dockerfiles/nginx.dockerfile
+        ports:
+            - "8325:80"
+            - "8326:443"
+        depends_on:
+            - php
+            - mysql
+            - minio
+            - selenium
+            - mailhog
+        restart: always
+        networks:
+            - uol-network
+
+    selenium:
+        image: 'seleniarm/standalone-chromium'
+        volumes:
+            - '/dev/shm:/dev/shm'
+        ports:
+            - 4445:4445
+        restart: always
+        networks:
+            - uol-network
+        environment:
+            - SE_NODE_MAX_SESSIONS=20
+            - SE_NODE_SESSION_TIMEOUT=120
+        shm_size: '2gb'
+
+    minio:
+        container_name: com-uol-minio
+        image: minio/minio
+        ports:
+            - 9102:9102
+            - 9103:9103
+        volumes:
+            - storage-minio-uol:/data
+        environment:
+            MINIO_ROOT_USER: minioadmin
+            MINIO_ROOT_PASSWORD: minioadmin
+            MINIO_ACCESS_KEY: homestead
+            MINIO_SECRET_KEY: secretkey
+        command: server --address ":9102" --console-address ":9103" /data
+        restart: always # necessary since it's failing to start sometimes
+        networks:
+            - uol-network
+
+    mailhog:
+        container_name: com-uol-mailhog
+        image: mailhog/mailhog
+        logging:
+            driver: 'none'  # disable saving logs
+        ports:
+            - 8226:8226 # web ui
+            - 1226:1226 # smtp server
+        restart: always
+        networks:
+            - uol-network
+
+    php:
+        container_name: com-uol-php
+        volumes:
+            - .:/var/www/html
+            - ./docker/env/php.env:/usr/local/etc/php/conf.d/custom-php.ini
+        build:
+            context: .
+            dockerfile: docker/dockerfiles/php.dockerfile
+        restart: always
+        networks:
+            - uol-network
+
+    mysql:
+        container_name: com-uol-mysql
+        image: mysql:8
+        restart: always
+        ports:
+            - "3437:3306"
+        env_file:
+            - ./docker/env/mysql.env
+        volumes:
+            - mysql_data_uol:/var/lib/mysql
+            - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+        networks:
+            - uol-network
+
+    artisan:
+        container_name: com-uol-artisan
+        build:
+            context: .
+            dockerfile: docker/dockerfiles/artisan.dockerfile
+        volumes:
+            - .:/var/www/html
+            - ./docker/env/php.env:/usr/local/etc/php/conf.d/custom-php.ini
+        entrypoint: [ "php", "/var/www/html/artisan" ]
+        networks:
+            - uol-network
+
+    vector-db:
+        build:
+            context: .
+            dockerfile: docker/dockerfiles/vector.dockerfile
+        container_name: com-uol-vector-db
+        restart: always
+        environment:
+            POSTGRES_DB: vector
+            POSTGRES_USER: vector_user
+            POSTGRES_PASSWORD: vector_pass
+        ports:
+            - "5533:5432"
+        networks:
+            - uol-network
+        volumes:
+            - vector_data_uol:/var/lib/postgresql/data
+volumes:
+    upload_dir_uol:
+    mysql_data_uol:
+    storage-minio-uol:
+    vector_data_uol:

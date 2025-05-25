@@ -15,7 +15,7 @@ class CodeGenerationWithContextService
     private function buildMessages(string $userPrompt, Collection $chunks): array
     {
         $context = $chunks
-            ->values()                                      // preserve ranking order
+            ->values()
             ->map(function ($chunk, $idx) {
                 $metadata = json_decode($chunk->metadata, true, 512, JSON_THROW_ON_ERROR);
                 $path = ($metadata['repo_path'] . '/' . $metadata['file_name']) ?? 'unknown';

@@ -80,7 +80,7 @@ class Playground extends Command
         }*/
 
         $codeGenerationService = CodeGenerationWithContextService::make();
-        dd($codeGenerationService->generateCode("Make all Buttons in the calculator red"));
+        dd($codeGenerationService->generateCode("Make the + method a - instead using the operate.js file"));
 
     }
 }

@@ -12,9 +12,9 @@ class SearchVectorDBService
 {
     use HasMakeAble;
 
-    private const TOP_K = 6;
+    private const TOP_K = 20;
 
-    private const EXPANSION_K = 3;
+    private const EXPANSION_K = 10;
 
     private const LEXICAL_K = 3;
 
@@ -52,39 +52,34 @@ class SearchVectorDBService
                 continue;
             }
 
-            $baseDir = Str::beforeLast($meta['repo_path'], '/');
-
-            foreach (($meta['imports'] ?? []) as $imp) {
-                // Skip package names
-                if (!Str::startsWith($imp, ['./', '../'])) {
-                    continue;
-                }
-
-                $resolved = self::resolveRelativePath($baseDir, $imp);
-                $relativePaths->push($resolved);
-                $relativePaths->push(Str::afterLast($resolved, '/'));
-            }
+            self::prepareRelativePats($meta, $relativePaths);
         }
 
         $relativePaths = $relativePaths->unique()->values();
 
         if ($relativePaths->isNotEmpty()) {
-            $placeholders = implode(',', array_fill(0, $relativePaths->count(), '?'));
-            $bindings = $relativePaths->all();
-            $bindings[] = self::EXPANSION_K;                       // LIMIT
+            $expansion = self::getRelativeChunks($relativePaths);
 
-            $expansion = collect(DB::connection('vector')->select(
-            /** @lang SQL */
-                "SELECT id,
-                content,
-                metadata,
-                0.50 AS score
-         FROM   kb_chunks
-         WHERE  (metadata->>'repo_path') = ANY (ARRAY[$placeholders])
-            OR  (metadata->>'file_name') = ANY (ARRAY[$placeholders])
-         LIMIT  ?",
-                $bindings
-            ));
+            $moreRelativePaths = collect();
+
+            foreach ($expansion as $chunk) {
+                $meta = is_string($chunk->metadata)
+                    ? json_decode($chunk->metadata, true, 512, JSON_THROW_ON_ERROR)
+                    : (array)$chunk->metadata;
+
+                if (!isset($meta['repo_path'])) {
+                    continue;
+                }
+
+                self::prepareRelativePats($meta, $moreRelativePaths);
+            }
+
+            $moreRelativePaths = $moreRelativePaths->unique()->values();
+
+            if ($moreRelativePaths->isNotEmpty()) {
+                $expansion2 = self::getRelativeChunks($moreRelativePaths);
+                $expansion = $expansion->merge($expansion2);
+            }
 
             $initial = $initial->merge($expansion);
         }
@@ -119,8 +114,8 @@ class SearchVectorDBService
 
     private static function resolveRelativePath(string $baseDir, string $importPath): string
     {
-        $segments = explode('/', ltrim($importPath, './'));
-        $stack = explode('/', trim($baseDir, '/'));
+        $segments = explode('/', $importPath);
+        $stack = explode('/', $baseDir);
 
         foreach ($segments as $seg) {
             if ($seg === '' || $seg === '.') {
@@ -133,5 +128,57 @@ class SearchVectorDBService
             }
         }
         return implode('/', $stack);
+    }
+
+    private static function prepareRelativePats(array $meta, $relativePaths): void
+    {
+        $baseDir = $meta['repo_path'];
+        $knownExts = ['.js'];
+        foreach (($meta['imports'] ?? []) as $imp) {
+            // Skip package names
+            if (!Str::startsWith($imp, ['./', '../'])) {
+                continue;
+            }
+
+            $resolved = self::resolveRelativePath($baseDir, $imp);
+            $relativePaths->push($resolved);
+
+            if (!Str::contains(Str::afterLast($resolved, '/'), '.')) {
+                foreach ($knownExts as $ext) {
+                    $relativePaths->push($resolved . $ext);
+                    $relativePaths->push($resolved . '/index' . $ext);
+                }
+            }
+        }
+    }
+
+    private static function getRelativeChunks($relativePaths)
+    {
+        $pairs = $relativePaths->map(function ($p) {
+            return [
+                Str::beforeLast($p, '/'),
+                Str::afterLast($p, '/')
+            ];
+        })->filter(fn($pair) => $pair[0] !== '' && $pair[1] !== '')
+            ->unique()
+            ->values();
+
+
+        $sqlTuples = implode(',', array_fill(0, $pairs->count(), '(?, ?)'));
+        $bindings = $pairs->flatten()->all();
+        $bindings[] = self::EXPANSION_K;
+
+        return collect(DB::connection('vector')->select(
+        /** @lang SQL */
+            "SELECT id,
+                content,
+                metadata,
+                0.50 AS score
+         FROM   kb_chunks
+         WHERE  (metadata->>'repo_path', metadata->>'file_name')
+                IN ($sqlTuples)
+         LIMIT  ?",
+            $bindings
+        ));
     }
 }

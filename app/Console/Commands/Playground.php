@@ -3,10 +3,12 @@
 namespace App\Console\Commands;
 
 
-use App\Services\CodeGeneration\CodeGenerationWithContextService;
+use App\Jobs\Prototypes\GeneratePrototype;
+use App\Models\Prototype;
 use App\Services\VectorDB\ChunkEmbeddingService;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Support\Str;
 
 class Playground extends Command
 {
@@ -79,8 +81,18 @@ class Playground extends Command
             $this->chunkEmbeddingService->saveFileEmbedding($codeFile);
         }*/
 
-        $codeGenerationService = CodeGenerationWithContextService::make();
-        dd($codeGenerationService->generateCode("Make the + method a - instead using the operate.js file"));
+        //$codeGenerationService = CodeGenerationWithContextService::make();
+        //dd($codeGenerationService->generateCode("Make the + method a - instead using the operate.js file"));
+
+
+        $prototype = Prototype::query()->create([
+            'user_id' => 1,
+            'description' => "Make a calculator app that has a button to add two numbers together.",
+            'status' => 'queued',
+            'uuid' => (string)Str::uuid(),
+        ]);
+
+        GeneratePrototype::dispatch($prototype);
 
     }
 }

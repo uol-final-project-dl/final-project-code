@@ -100,6 +100,7 @@ services:
         volumes:
             - .:/var/www/html
             - ./docker/env/php.env:/usr/local/etc/php/conf.d/custom-php.ini
+            - /var/run/docker.sock:/var/run/docker.sock
         entrypoint: [ "php", "/var/www/html/artisan" ]
         networks:
             - uol-network
@@ -120,6 +121,13 @@ services:
             - uol-network
         volumes:
             - vector_data_uol:/var/lib/postgresql/data
+    react-buildbox:
+        build:
+            context: ./docker/react-buildbox
+            dockerfile: react-buildbox.dockerfile
+        entrypoint: [ "dumb-init", "--" ]
+        command: [ "sleep", "infinity" ]
+
 volumes:
     upload_dir_uol:
     mysql_data_uol:

@@ -21,6 +21,9 @@ RUN apt -y install php8.2-pgsql
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get install -y nodejs
 
+RUN apt-get update && apt-get install -y docker.io
+RUN apt-get update && apt-get install -y zip unzip
+
 RUN node -v
 RUN npm -v
 

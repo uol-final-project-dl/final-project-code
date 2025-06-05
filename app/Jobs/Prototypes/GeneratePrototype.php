@@ -12,7 +12,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
-use JsonException;
 
 class GeneratePrototype implements ShouldQueue
 {
@@ -24,22 +23,19 @@ class GeneratePrototype implements ShouldQueue
      * @throws BindingResolutionException
      */
     public function __construct(
-        public Prototype $prototype,   // Eloquent model with user_id & description
+        public Prototype $prototype,
     )
     {
         $this->prototypeGenerationWithContextService = PrototypeGenerationWithContextService::make();
     }
-
-    /**
-     * @throws JsonException
-     */
+    
     public function handle(): void
     {
         $uuid = $this->prototype->uuid;
-        $patchRel = "jobs/{$uuid}/patch-App.jsx";
-        $workDir = storage_path("app/private/jobs/{$uuid}");
+        $patchRel = "jobs/$uuid/patch-App.jsx";
+        $workDir = storage_path("app/private/jobs/$uuid");
 
-        Storage::disk('local')->makeDirectory("jobs/{$uuid}");
+        Storage::disk('local')->makeDirectory("jobs/$uuid");
 
 
         // Call the LLM to generate the React code
@@ -55,7 +51,7 @@ class GeneratePrototype implements ShouldQueue
             '--volumes-from', $containerId,
             'brainstorm-to-prototype-react-buildbox:latest',
             'sh', '-c',
-            "jobDir=/var/www/html/storage/app/private/jobs/{$uuid} &&
+            "jobDir=/var/www/html/storage/app/private/jobs/$uuid &&
              cp \$jobDir/patch-App.jsx /app/templates/base/src/App.jsx &&
              cd /app/templates/base &&
              yarn vite build --outDir \$jobDir/dist"
@@ -72,8 +68,8 @@ class GeneratePrototype implements ShouldQueue
             return;
         }
 
-        $zipPath = "{$workDir}/{$uuid}.zip";
-        $result = Process::path("{$workDir}/dist")->run([
+        $zipPath = "$workDir/$uuid.zip";
+        $result = Process::path("$workDir/dist")->run([
             'zip', '-qr', $zipPath, '.'
         ]);
 
@@ -88,9 +84,6 @@ class GeneratePrototype implements ShouldQueue
 
     }
 
-    /**
-     * @throws JsonException
-     */
     private function generateWithLLM(string $prompt): string
     {
         return $this->prototypeGenerationWithContextService->generate($prompt);

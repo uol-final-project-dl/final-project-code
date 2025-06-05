@@ -28,27 +28,27 @@ class CodeGenerationWithContextService
             ->implode("\n\n");
 
         $system = <<<SYS
-You are an expert full-stack engineer.
-Respond **only** with a JSON array. Each element:
-{
-  "repo_path": "<relative/path/to/file>",
-  "action": "modify" | "create",
-  "content": "<complete new file content>"
-}
+        You are an expert full-stack engineer.
+        Respond **only** with a JSON array. Each element:
+        {
+          "repo_path": "<relative/path/to/file>",
+          "action": "modify" | "create",
+          "content": "<complete new file content>"
+        }
 
-Rules:
-- Do not add explanations or markdown outside the JSON.
-- If you lack necessary context, respond instead with:
-  { "NEED_FILE": "<repo_path>" }
-SYS;
+        Rules:
+        - Do not add explanations or markdown outside the JSON.
+        - If you lack necessary context, respond instead with:
+          { "NEED_FILE": "<repo_path>" }
+        SYS;
 
         $user = <<<USR
-CONTEXT:
-{$context}
+        CONTEXT:
+        {$context}
 
-CODING REQUEST:
-{$userPrompt}
-USR;
+        CODING REQUEST:
+        {$userPrompt}
+        USR;
 
         return [
             ['role' => 'system', 'content' => $system],

@@ -7,6 +7,7 @@ use App\Traits\HasMakeAble;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use JsonException;
 
 class SearchVectorDBService
 {
@@ -20,6 +21,9 @@ class SearchVectorDBService
 
     private const PRIMARY_FILE_LIMIT = 3;
 
+    /**
+     * @throws JsonException
+     */
     public static function searchFileChunks(string $prompt): Collection
     {
         // Embed user prompt using the same model
@@ -27,7 +31,6 @@ class SearchVectorDBService
         $vectorParam = '[' . implode(',', $vector) . ']';
 
         $initial = collect(DB::connection('vector')->select(
-        /** @lang SQL */
             'SELECT DISTINCT ON (metadata->>\'repo_path\')
             id,
             content,
@@ -133,18 +136,18 @@ class SearchVectorDBService
     private static function prepareRelativePats(array $meta, $relativePaths): void
     {
         $baseDir = $meta['repo_path'];
-        $knownExts = ['.js'];
-        foreach (($meta['imports'] ?? []) as $imp) {
+        $knownExtensions = ['.js'];
+        foreach (($meta['imports'] ?? []) as $import) {
             // Skip package names
-            if (!Str::startsWith($imp, ['./', '../'])) {
+            if (!Str::startsWith($import, ['./', '../'])) {
                 continue;
             }
 
-            $resolved = self::resolveRelativePath($baseDir, $imp);
+            $resolved = self::resolveRelativePath($baseDir, $import);
             $relativePaths->push($resolved);
 
             if (!Str::contains(Str::afterLast($resolved, '/'), '.')) {
-                foreach ($knownExts as $ext) {
+                foreach ($knownExtensions as $ext) {
                     $relativePaths->push($resolved . $ext);
                     $relativePaths->push($resolved . '/index' . $ext);
                 }
@@ -152,7 +155,7 @@ class SearchVectorDBService
         }
     }
 
-    private static function getRelativeChunks($relativePaths)
+    private static function getRelativeChunks($relativePaths): Collection
     {
         $pairs = $relativePaths->map(function ($p) {
             return [

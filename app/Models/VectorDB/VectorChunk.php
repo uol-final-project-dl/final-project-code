@@ -4,8 +4,10 @@ namespace App\Models\VectorDB;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
+use JsonException;
+use JsonSerializable;
 
-class VectorChunk implements Arrayable, Jsonable, \JsonSerializable
+class VectorChunk implements Arrayable, Jsonable, JsonSerializable
 {
     public function __construct(
         public string $id,
@@ -24,13 +26,16 @@ class VectorChunk implements Arrayable, Jsonable, \JsonSerializable
         ];
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): array
     {
         return $this->toArray();
     }
 
+    /**
+     * @throws JsonException
+     */
     public function toJson($options = 0): string
     {
-        return json_encode($this->toArray(), $options);
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR | $options);
     }
 }

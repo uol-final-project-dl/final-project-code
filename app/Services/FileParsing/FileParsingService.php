@@ -3,19 +3,23 @@
 namespace App\Services\FileParsing;
 
 use App\Models\CodeFile;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use RuntimeException;
 
 class FileParsingService
 {
+    /**
+     * @throws ConnectionException
+     */
     public static function parseFile(string $fileUrl): CodeFile
     {
         $content = self::readContents($fileUrl);
 
         $info = self::pathInfoFromUrl($fileUrl);
         $extension = strtolower($info['extension'] ?? '');
-        $type = $extension ? ".{$extension}" : '';
+        $type = $extension ? ".$extension" : '';
 
         $summary = self::makeSummary($content, $type);
 
@@ -28,6 +32,9 @@ class FileParsingService
         ]);
     }
 
+    /**
+     * @throws ConnectionException
+     */
     private static function readContents(string $url): string
     {
         // Remote fetching the file
@@ -35,14 +42,14 @@ class FileParsingService
             $resp = Http::timeout(8)->get($url);
 
             if (!$resp->ok()) {
-                throw new RuntimeException("Failed to download {$url} – HTTP {$resp->status()}");
+                throw new RuntimeException("Failed to download $url – HTTP {$resp->status()}");
             }
             return $resp->body();
         }
 
         // If it is a local path
         if (!is_readable($url)) {
-            throw new RuntimeException("File not readable: {$url}");
+            throw new RuntimeException("File not readable: $url");
         }
 
         return file_get_contents($url);

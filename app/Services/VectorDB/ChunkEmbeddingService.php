@@ -47,7 +47,7 @@ class ChunkEmbeddingService
             $chunkMetadata['chunk'] = $n;
 
             $chunks->push(new VectorChunk(
-                id: "{$codeFile->id}#c{$n}",
+                id: "$codeFile->id#c$n",
                 text: $text,
                 metadata: $chunkMetadata,
             ));

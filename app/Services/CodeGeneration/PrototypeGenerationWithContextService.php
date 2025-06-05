@@ -37,10 +37,7 @@ class PrototypeGenerationWithContextService
             ['role' => 'user', 'content' => $user],
         ];
     }
-
-    /**
-     * @throws \JsonException
-     */
+    
     public function generate(string $userPrompt): string
     {
         $messages = $this->buildMessages($userPrompt);

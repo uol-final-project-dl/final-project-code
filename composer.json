@@ -19,7 +19,11 @@
         "laravel/sanctum": "*",
         "intervention/image": "^3.11.3",
         "guzzlehttp/guzzle": "^7.9.3",
-        "league/flysystem-aws-s3-v3": "^3.0"
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "aws/aws-sdk-php": "^3.348.1",
+        "google/apiclient": "^v2.18.3",
+        "intervention/image": "^3.11.3",
+        "nesbot/carbon": "^3.10.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

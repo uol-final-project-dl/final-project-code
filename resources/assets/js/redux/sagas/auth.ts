@@ -4,7 +4,7 @@ import axios from "axios";
 function* checkUserStatus(): any {
     try {
         yield put({type: 'SET_AUTH_LOADING', payload: {loading: true}})
-        const response = yield axios.get(`/checkUserStatus`).then(response => response);
+        const response = yield axios.get(`/api/checkUserStatus`).then(response => response);
 
         switch (response.status) {
             case 401:

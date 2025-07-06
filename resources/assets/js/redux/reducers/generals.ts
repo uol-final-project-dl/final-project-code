@@ -1,5 +1,6 @@
 const initialState = {
     pageTitle: 'Final Project',
+    toast: null
 };
 
 export default function (state = initialState, action: any) {

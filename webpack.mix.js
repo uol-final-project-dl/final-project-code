@@ -2,7 +2,6 @@ const mix = require("laravel-mix");
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const webpack = require('webpack');
 
 mix.version();
 
@@ -48,22 +47,7 @@ mix.webpackConfig({
         new ForkTsCheckerNotifierWebpackPlugin({
             title: 'TypeScript',
             excludeWarnings: false,
-        }),
-        // If you need to check memory usage:
-        {
-            apply: (compiler) => {
-                compiler.hooks.beforeRun.tap('MemoryUsagePlugin', (compilation) => {
-                    const used = process.memoryUsage().heapUsed / 1024 / 1024;
-                    console.log(`Memory used before compilation: ${Math.round(used * 100) / 100} MB`);
-                });
-
-                compiler.hooks.done.tap('MemoryUsagePlugin', (stats) => {
-                    const used = process.memoryUsage().heapUsed / 1024 / 1024;
-                    console.log(`Memory used after compilation: ${Math.round(used * 100) / 100} MB`);
-                });
-            }
-        },
-        new webpack.DefinePlugin(envKeys),
+        })
     ],
 })
 

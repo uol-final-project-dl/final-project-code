@@ -5,18 +5,15 @@ import React, {useEffect} from 'react'
 import store from "../redux/store"
 import {Provider, useDispatch, useSelector} from 'react-redux'
 import {createRoot} from "react-dom/client"
-import './App.less';
 import {Spin} from "antd";
 import {BrowserRouter} from "react-router-dom";
 import PusherHelper from "../helpers/PusherHelper";
-import Login from "./auth/login/Login";
-import Signup from "./auth/signup/Signup";
 import AppRoutes from "./AppRoutes";
+import Login from "./auth/Login/Login";
 
 function App() {
     const dispatch = useDispatch();
     const isLoggedIn = useSelector((state: { auth: { isLoggedIn: boolean } }) => state.auth.isLoggedIn);
-    const isTfaValid = useSelector((state: { auth: { isTfaValid: boolean } }) => state.auth.isTfaValid);
     const loading = useSelector((state: { auth: { loading: boolean } }) => state.auth.loading);
 
     const savePageRedirect = () => {
@@ -46,9 +43,7 @@ function App() {
     return <BrowserRouter>
         <>
             {!isLoggedIn ? (
-                <Login/>
-            ) : !isTfaValid ? (
-                    <Signup/>
+                    <Login/>
                 ) :
                 <AppRoutes/>
             }

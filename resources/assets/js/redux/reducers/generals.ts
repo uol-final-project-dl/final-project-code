@@ -10,6 +10,18 @@ export default function (state = initialState, action: any) {
                 ...state,
             };
         }
+        case "START_GENERAL_TOAST": {
+            return {
+                ...state,
+                toast: action.payload.toast
+            };
+        }
+        case "STOP_GENERAL_TOAST": {
+            return {
+                ...state,
+                toast: null
+            };
+        }
         default:
             return state;
     }

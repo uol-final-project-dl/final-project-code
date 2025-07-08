@@ -15,6 +15,7 @@
     <title>Brainstorm to Prototype</title>
     <!-- Styles -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,600,700" rel="stylesheet">
+    <link href="{{ mix('css/app.css') }}" rel="stylesheet">
 </head>
 <body style="margin: 0">
 

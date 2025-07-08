@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Projects\ProjectsController;
 use App\Http\Controllers\User\LoginController;
 use App\Http\Controllers\User\MainController;
 use App\Http\Controllers\User\SignupController;
@@ -26,9 +27,8 @@ Route::group(['prefix' => 'api', 'as' => 'api.'], static function () {
     })->middleware('auth:sanctum');
 
     Route::middleware(['auth:sanctum'])->group(function () {
-        Route::get('/testSanctum', static function () {
-            return response()->json(['message' => 'Sanctum authentication is working!']);
-        });
+        Route::get('/projects', [ProjectsController::class, 'getProjects']);
+        Route::post('/project/create', [ProjectsController::class, 'createProject']);
     });
 });
 

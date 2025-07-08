@@ -5,6 +5,8 @@ import ToastContainer from "./utilities/ToastContainer/ToastContainer";
 import Home from './pages/Home/Home'
 import UserRoutes from "./utilities/UserRoutes";
 import Layout from "./pages/layout/Layout";
+import Projects from "./pages/Projects/Projects";
+import ProjectForm from "./pages/Projects/ProjectForm";
 
 export default function AppRoutes() {
     const mainSectionContainerRef = useRef<HTMLDivElement>(null)
@@ -29,6 +31,23 @@ export default function AppRoutes() {
                                 element={
                                     <Layout selectedKey={UserRoutes.HOME} title={"Home"}>
                                         <Home/>
+                                    </Layout>
+                                }
+                            />
+                            <Route
+                                path="user/app/projects"
+                                element={
+                                    <Layout selectedKey={UserRoutes.PROJECTS} title={"Projects"}>
+                                        <Projects/>
+                                    </Layout>
+                                }
+                            />
+
+                            <Route
+                                path="user/app/projects/create"
+                                element={
+                                    <Layout selectedKey={UserRoutes.PROJECTS} title={"Project Create"}>
+                                        <ProjectForm/>
                                     </Layout>
                                 }
                             />

@@ -6,6 +6,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 mix.version();
 
 mix.ts('resources/assets/js/app.ts', 'public/js').react(); // User React App
+mix.sass("resources/assets/sass/app.scss", "public/css");
 
 mix.webpackConfig({
     cache: {

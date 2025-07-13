@@ -11,3 +11,5 @@ Technologies used:
 - PostgreSQL
 - pgvector
 - OpenAI API
+- ffmpeg
+- OpenAI Whisper

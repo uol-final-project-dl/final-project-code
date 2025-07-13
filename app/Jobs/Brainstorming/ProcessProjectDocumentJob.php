@@ -7,7 +7,6 @@ use App\Models\ProjectDocument;
 use App\Services\FFMPEG\FFMPEGService;
 use App\Services\Whisper\WhisperService;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -25,9 +24,6 @@ class ProcessProjectDocumentJob implements ShouldQueue
 
     private ProjectDocument $projectDocument;
 
-    /**
-     * @throws BindingResolutionException
-     */
     public function __construct(
         ProjectDocument $projectDocument,
     )
@@ -121,7 +117,7 @@ class ProcessProjectDocumentJob implements ShouldQueue
 
         // Max 15 min for price and performance reasons
         FFMPEGService::trim($tmpOutputPath, 900);
-        
+
         $text = WhisperService::transcribe($tmpOutputPath);
 
         unlink($tmpFilePath);

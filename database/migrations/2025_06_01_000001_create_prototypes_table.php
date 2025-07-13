@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\StatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,7 @@ return new class extends Migration {
             $table->unsignedInteger('user_id');
             $table->uuid()->unique();
             $table->string('description');
-            $table->string('status')->default('queued');
+            $table->string('status')->default(StatusEnum::QUEUED->value);
             $table->string('bundle')->nullable();
             $table->longText('log')->nullable();
             $table->timestamps();

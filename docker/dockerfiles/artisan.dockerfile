@@ -24,6 +24,20 @@ RUN apt-get install -y nodejs
 RUN apt-get update && apt-get install -y docker.io
 RUN apt-get update && apt-get install -y zip unzip
 
+# poppler-utils
+RUN apt-get update && apt-get install -y poppler-utils
+
+# apt install ffmpeg
+RUN apt-get update && apt-get install -y ffmpeg
+
+# whisper:
+RUN apt-get update && apt-get install -y python3 python3-pip python3.12-venv
+RUN python3 -m venv /opt/venv
+RUN /opt/venv/bin/pip install --upgrade pip
+RUN /opt/venv/bin/pip install torch
+RUN /opt/venv/bin/pip install git+https://github.com/openai/whisper.git
+ENV PATH="/opt/venv/bin:$PATH"
+
 RUN node -v
 RUN npm -v
 

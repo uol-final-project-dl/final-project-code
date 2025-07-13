@@ -8,6 +8,7 @@ enum ProjectStageEnum: string
     case IDEATING = 'ideating';
     case PROTOTYPING = 'prototyping';
     case CODING = 'coding';
+    case ARCHIVED = 'archived';
 
     public function label(): string
     {
@@ -16,7 +17,13 @@ enum ProjectStageEnum: string
             self::IDEATING => 'Ideating',
             self::PROTOTYPING => 'Prototyping',
             self::CODING => 'Coding',
+            self::ARCHIVED => 'Archived',
         };
+    }
+
+    public static function getValues(): array
+    {
+        return array_map(fn($case) => $case->value, self::cases());
     }
 
 }

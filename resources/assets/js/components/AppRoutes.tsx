@@ -7,6 +7,7 @@ import UserRoutes from "./utilities/UserRoutes";
 import Layout from "./pages/layout/Layout";
 import Projects from "./pages/Projects/Projects";
 import ProjectForm from "./pages/Projects/ProjectForm";
+import SingleProject from "./pages/SingleProject/SingleProject";
 
 export default function AppRoutes() {
     const mainSectionContainerRef = useRef<HTMLDivElement>(null)
@@ -34,6 +35,8 @@ export default function AppRoutes() {
                                     </Layout>
                                 }
                             />
+
+                            { /*Project List Page */}
                             <Route
                                 path="user/app/projects"
                                 element={
@@ -48,6 +51,17 @@ export default function AppRoutes() {
                                 element={
                                     <Layout selectedKey={UserRoutes.PROJECTS} title={"Project Create"}>
                                         <ProjectForm/>
+                                    </Layout>
+                                }
+                            />
+
+                            { /* Single Project Page */}
+
+                            <Route
+                                path={"user/app/projects/:id"}
+                                element={
+                                    <Layout selectedKey={UserRoutes.PROJECTS} title={"Project Details"}>
+                                        <SingleProject/>
                                     </Layout>
                                 }
                             />

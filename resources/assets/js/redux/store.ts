@@ -6,6 +6,7 @@ import createSagaMiddleware from "redux-saga";
 import rootReducer from "./reducers";
 import generalSaga from './sagas/general'
 import authSaga from './sagas/auth'
+import projectSaga from './sagas/project'
 
 const sagaMiddleware = createSagaMiddleware()
 const store = configureStore({
@@ -15,5 +16,6 @@ const store = configureStore({
 
 sagaMiddleware.run(generalSaga)
 sagaMiddleware.run(authSaga)
+sagaMiddleware.run(projectSaga)
 
 export default store;

@@ -1,0 +1,57 @@
+import React from 'react';
+import {Button, Spin, Upload} from "antd";
+import IProject from "../../../../../../interfaces/IProject";
+import {useDispatch} from "react-redux";
+import {StatusEnum} from "../../../../../../enums/StatusEnum";
+
+export default function ProjectBrainstormingRequestData({project}: { project: IProject }) {
+
+    const dispatch = useDispatch();
+
+    const reloadProject = () => {
+        dispatch({type: 'DATA_FETCH_PROJECT', payload: {id: project.id}});
+    }
+
+    const goToNextStatus = () => {
+        dispatch({type: 'DATA_UPDATE_PROJECT_STATUS', payload: {id: project.id, status: StatusEnum.QUEUED}});
+    }
+
+    return project ? <div>
+            <div className={'d-flex justify-content-start mb-4 text-bold'}>
+                Please upload a file or files containing the documents you want to use for brainstorming.
+            </div>
+            <div>
+                <Upload
+                    action={"/api/project/" + project.id + "/brainstorming/upload-documents"}
+                    method={"POST"}
+                    headers={
+                        {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    }
+                    accept=".txt,.pdf,.mp4,.mp3"
+                    multiple={true}
+                    showUploadList={true}
+                    onChange={(info) => {
+                        if (info.file.status === 'done') {
+                            reloadProject();
+                        } else if (info.file.status === 'error') {
+                            console.error('File(s) upload failed:', info.file.response);
+                        }
+                    }}
+                    maxCount={5}
+                >
+                    <button className={'ant-btn ant-btn-primary'}>
+                        Upload Request Data
+                    </button>
+                </Upload>
+
+                <div className={'mt-4'}>
+                    <Button type={'primary'} onClick={() => goToNextStatus()}>
+                        Finish uploading files
+                    </Button>
+                </div>
+            </div>
+        </div>
+        : <Spin/>
+}

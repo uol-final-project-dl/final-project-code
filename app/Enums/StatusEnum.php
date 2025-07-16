@@ -15,7 +15,7 @@ enum StatusEnum: string
             self::REQUEST_DATA => 'Request Data',
             self::QUEUED => 'Queued',
             self::READY => 'Ready',
-            self::FAILED => 'Failed',
+            self::FAILED => 'Failed'
         };
     }
 

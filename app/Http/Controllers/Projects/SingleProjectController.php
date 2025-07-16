@@ -8,7 +8,9 @@ use App\Enums\ProjectStageEnum;
 use App\Enums\StatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
+use App\Jobs\Brainstorming\CreateIdeasFromProjectDocumentsJob;
 use App\Jobs\Brainstorming\ProcessProjectDocumentsJob;
+use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectServices\ProjectDocumentService;
 use Random\RandomException;
@@ -93,6 +95,8 @@ class SingleProjectController extends Controller
         $user = User::safeInstance(auth()->user());
         $project = $user->projects()->where('id', $id)->firstOrFail();
 
+        $originalStatus = $project->status;
+
         request()->validate(
             [
                 'status' => 'required|in:' . implode(',', StatusEnum::getValues())
@@ -102,13 +106,29 @@ class SingleProjectController extends Controller
                 'status.in' => 'Invalid status value.',
             ]
         );
-
+        
         $project->update(['status' => request('status')]);
+        $project->refresh();
+
+        if ($originalStatus !== request('status')) {
+            $this->queueJobsAfterChange($project);
+        }
 
         return [
             'project' => ProjectResource::make($project),
             'result' => 1,
         ];
+    }
+
+    private function queueJobsAfterChange(Project $project): void
+    {
+        switch ($project->status . '-' . $project->stage) {
+            case StatusEnum::QUEUED->value . '-' . ProjectStageEnum::BRAINSTORMING->value:
+                CreateIdeasFromProjectDocumentsJob::dispatch($project);
+                break;
+            default:
+                break;
+        }
     }
 }
 

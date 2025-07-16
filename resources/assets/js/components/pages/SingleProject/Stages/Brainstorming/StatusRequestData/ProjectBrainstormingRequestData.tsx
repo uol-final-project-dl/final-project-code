@@ -19,6 +19,8 @@ export default function ProjectBrainstormingRequestData({project}: { project: IP
     return project ? <div>
             <div className={'d-flex justify-content-start mb-4 text-bold'}>
                 Please upload a file or files containing the documents you want to use for brainstorming.
+                <br/>
+                If you are back on this page its because maybe some file didn't process correctly or no ideas were found.
             </div>
             <div>
                 <Upload

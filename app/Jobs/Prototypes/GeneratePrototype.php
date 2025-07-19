@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Prototypes;
 
+use App\Enums\StatusEnum;
 use App\Models\Prototype;
 use App\Services\CodeGeneration\PrototypeGenerationWithContextService;
 use Illuminate\Bus\Queueable;
@@ -17,6 +18,8 @@ class GeneratePrototype implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $timeout = 600;
+
     private PrototypeGenerationWithContextService $prototypeGenerationWithContextService;
 
     /**
@@ -28,7 +31,7 @@ class GeneratePrototype implements ShouldQueue
     {
         $this->prototypeGenerationWithContextService = PrototypeGenerationWithContextService::make();
     }
-    
+
     public function handle(): void
     {
         $uuid = $this->prototype->uuid;
@@ -39,7 +42,7 @@ class GeneratePrototype implements ShouldQueue
 
 
         // Call the LLM to generate the React code
-        $reactCode = $this->generateWithLLM($this->prototype->description);
+        $reactCode = $this->generateWithLLM($this->prototype->title . ' : ' . $this->prototype->description);
 
         Storage::disk('local')->put($patchRel, $reactCode);
 
@@ -62,7 +65,7 @@ class GeneratePrototype implements ShouldQueue
         // Try to handle the result of the process
         if ($result->failed()) {
             $this->prototype->update([
-                'status' => 'failed',
+                'status' => StatusEnum::FAILED->value,
                 'log' => $result->errorOutput(),
             ]);
             return;
@@ -76,12 +79,10 @@ class GeneratePrototype implements ShouldQueue
         $path = Storage::disk('minio')->putFile("prototypes", $zipPath);
 
         $this->prototype->update([
-            'status' => 'ready',
+            'status' => StatusEnum::READY->value,
             'bundle' => $path,
             'log' => $result->output(),
         ]);
-
-
     }
 
     private function generateWithLLM(string $prompt): string

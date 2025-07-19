@@ -48,6 +48,20 @@ export default function ProjectBrainstormingRequestData({project}: { project: IP
                     </button>
                 </Upload>
 
+                <div>
+                    <div className={'mt-4'}>
+                        Currently uploaded documents:
+                    </div>
+                    {project.project_documents.map(
+                        (document, i) => (
+                            <div key={i} className={'mt-2'}>
+                                <span className={'text-bold'}>{document.filename}</span>
+                                <span className={'text-muted'}> ({document.type})</span>
+                            </div>
+                        )
+                    )}
+                </div>
+
                 <div className={'mt-4'}>
                     <Button type={'primary'} onClick={() => goToNextStatus()}>
                         Finish uploading files

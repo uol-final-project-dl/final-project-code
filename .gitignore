@@ -24,3 +24,5 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/docker/react-buildbox/templates/base/node_modules/*
+/docker/react-buildbox/templates/base/node_modules/

@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use App\Enums\StatusEnum;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * @property string $title
  * @property string $description
  * @property string $uuid
+ * @property mixed $status
+ * @property ProjectIdea $project_idea
  */
 class Prototype extends Model
 {
@@ -14,10 +19,43 @@ class Prototype extends Model
 
     protected $fillable = [
         'user_id',
+        'project_idea_id',
         'uuid',
+        'title',
         'description',
         'status',
         'bundle',
         'log'
     ];
+
+    public function project_idea(): BelongsTo
+    {
+        return $this->belongsTo(ProjectIdea::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(static function (self $prototype): void {
+            // Only act when status just changed to READY
+            if ($prototype->status !== StatusEnum::READY->value || !$prototype->wasChanged('status')) {
+                return;
+            }
+
+            $project = $prototype->project_idea->project;
+
+            $allReady = !$project
+                ->project_ideas()
+                ->whereHas(
+                    'prototypes',
+                    function ($q) {
+                        $q->whereNotIn('status', [StatusEnum::READY->value, StatusEnum::FAILED->value]);
+                    }
+                )
+                ->exists();
+
+            if ($allReady) {
+                $project->update(['status' => StatusEnum::READY->value]);
+            }
+        });
+    }
 }

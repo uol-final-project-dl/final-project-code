@@ -6,10 +6,12 @@ use App\Traits\HasSelfCasting;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 /**
  * @property string $description
  * @property int $id
+ * @property Collection<ProjectIdea> $project_ideas
  */
 class Project extends Model
 {

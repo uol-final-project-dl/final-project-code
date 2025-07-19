@@ -15,9 +15,10 @@ class PrototypeGenerationWithContextService
         $baseline = file_get_contents(base_path('docker/react-buildbox/templates/base/src/App.jsx'));
 
         $system = <<<SYS
-        You are an expert React/Tailwind engineer.
-        Return **only** the complete replacement for \`src/App.jsx\`.
-        All imports must already exist in package.json; do not add other files.
+        You are an expert React engineer who can generate React code based on a user prompt.
+        You can use Ant Design components. Use inline styles for custom CSS to make it look good.
+        Return **only** the complete replacement for \`src/App.jsx\`. You must return **a complete file**.
+        All imports must already exist in package.json; do not add any other files.
         SYS;
 
         $user = <<<USR
@@ -37,16 +38,16 @@ class PrototypeGenerationWithContextService
             ['role' => 'user', 'content' => $user],
         ];
     }
-    
+
     public function generate(string $userPrompt): string
     {
         $messages = $this->buildMessages($userPrompt);
 
         $resp = OpenAI::chat()->create([
-            'model' => 'gpt-4o-mini',
+            'model' => 'gpt-4.1',
             'temperature' => 0.2,
             'messages' => $messages,
-            'max_tokens' => 2048,
+            'max_tokens' => 3000,
         ]);
 
         return $resp['choices'][0]['message']['content'] ?? '';

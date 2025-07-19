@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Jobs\Brainstorming\CreateIdeasFromProjectDocumentsJob;
 use App\Jobs\Brainstorming\ProcessProjectDocumentsJob;
+use App\Jobs\Ideating\CreatePrototypeRequestsFromIdeasJob;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectServices\ProjectDocumentService;
@@ -106,12 +107,12 @@ class SingleProjectController extends Controller
                 'status.in' => 'Invalid status value.',
             ]
         );
-        
+
         $project->update(['status' => request('status')]);
         $project->refresh();
 
         if ($originalStatus !== request('status')) {
-            $this->queueJobsAfterChange($project);
+            $this->doActionsAfterChange($project, request('extra') ?? []);
         }
 
         return [
@@ -120,11 +121,22 @@ class SingleProjectController extends Controller
         ];
     }
 
-    private function queueJobsAfterChange(Project $project): void
+    private function doActionsAfterChange(Project $project, array $extra): void
     {
         switch ($project->status . '-' . $project->stage) {
             case StatusEnum::QUEUED->value . '-' . ProjectStageEnum::BRAINSTORMING->value:
                 CreateIdeasFromProjectDocumentsJob::dispatch($project);
+                break;
+            case StatusEnum::QUEUED->value . '-' . ProjectStageEnum::IDEATING->value:
+                $selectedIdeas = $extra['selected_ideas'] ?? [];
+                if (empty($selectedIdeas)) {
+                    return;
+                }
+                foreach ($selectedIdeas as $ideaId) {
+                    $idea = $project->project_ideas()->find($ideaId);
+                    $idea?->update(['status' => StatusEnum::READY->value]);
+                }
+                CreatePrototypeRequestsFromIdeasJob::dispatch($project);
                 break;
             default:
                 break;

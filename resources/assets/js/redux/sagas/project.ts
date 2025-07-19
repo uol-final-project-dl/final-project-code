@@ -23,7 +23,8 @@ function* updateProjectStatus(action: any): any {
     try {
         const json = yield axios.post('/api/project/' + action.payload.id + '/update-status',
             {
-                status: action.payload.status
+                status: action.payload.status,
+                extra: action.payload.extra ?? {}
             }).then(
             response => {
                 return response.data;

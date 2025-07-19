@@ -25,7 +25,11 @@ class ProjectResource extends JsonResource
         if (!$this->relationLoaded('project_documents')) {
             $this->load('project_documents');
         }
-        
+
+        if (!$this->relationLoaded('project_ideas')) {
+            $this->load('project_ideas');
+        }
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -34,6 +38,7 @@ class ProjectResource extends JsonResource
             'description' => $this->description,
             'user_id' => $this->user_id,
             'project_documents' => ProjectDocumentResource::collection($this->whenLoaded('project_documents')),
+            'project_ideas' => ProjectIdeaResource::collection($this->whenLoaded('project_ideas')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

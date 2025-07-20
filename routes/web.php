@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Projects\ProjectsController;
 use App\Http\Controllers\Projects\SingleProjectController;
+use App\Http\Controllers\Prototypes\ViewPrototypeController;
 use App\Http\Controllers\User\LoginController;
 use App\Http\Controllers\User\MainController;
 use App\Http\Controllers\User\SignupController;
@@ -37,8 +38,18 @@ Route::group(['prefix' => 'api', 'as' => 'api.'], static function () {
         Route::post('/project/{id}/update-stage', [SingleProjectController::class, 'updateProjectStage']);
         Route::post('/project/{id}/update-status', [SingleProjectController::class, 'updateProjectStatus']);
 
+        // BRAINSTORMING
         Route::post('/project/{id}/brainstorming/upload-documents', [SingleProjectController::class, 'uploadDocuments']);
+
     });
+});
+
+// PROTOTYPES
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/prototype/{prototype}/asset/{file?}', [ViewPrototypeController::class, 'getPrototypeFile'])
+        ->where('file', '.*');
+
+    Route::get('/prototype/{prototype}', [ViewPrototypeController::class, 'viewPrototype']);
 });
 
 

@@ -4,6 +4,14 @@ export interface IProjectIdea {
     description: string
     ranking: number
     status: string
+    prototypes: IPrototype[]
+    created_at: string
+    updated_at: string
+}
+
+export interface IPrototype {
+    id: number
+    status: string
     created_at: string
     updated_at: string
 }

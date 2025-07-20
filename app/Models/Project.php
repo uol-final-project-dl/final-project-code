@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
  * @property string $description
  * @property int $id
  * @property Collection<ProjectIdea> $project_ideas
+ * @property int $user_id
  */
 class Project extends Model
 {

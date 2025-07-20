@@ -12,7 +12,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class CreatePrototypeRequestsFromIdeasJob implements ShouldQueue
@@ -59,7 +58,7 @@ class CreatePrototypeRequestsFromIdeasJob implements ShouldQueue
             }
 
             $prototype = $idea->prototypes()->create([
-                'user_id' => Auth::user()->id ?? 0,
+                'user_id' => $project->user_id,
                 'project_idea_id' => $idea->id,
                 'title' => $idea->title,
                 'description' => $idea->description,

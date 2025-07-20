@@ -7,6 +7,7 @@ import ProjectBrainstorming from "./Stages/Brainstorming/ProjectBrainstorming";
 import {useDispatch, useSelector} from "react-redux";
 import {ProjectStageEnum} from "../../../enums/ProjectStageEnum";
 import ProjectIdeation from "./Stages/Ideation/ProjectIdeation";
+import ProjectPrototyping from "./Stages/Prototyping/ProjectPrototyping";
 
 export default function SingleProject() {
     const project = useSelector((state: { project: { project: IProject | null } }) => state.project.project);
@@ -24,7 +25,7 @@ export default function SingleProject() {
             case ProjectStageEnum.IDEATING:
                 return <ProjectIdeation/>;
             case ProjectStageEnum.PROTOTYPING:
-                return <div>Prototyping Stage</div>;
+                return <ProjectPrototyping/>;
             case ProjectStageEnum.CODING:
                 return <div>Coding Stage</div>;
             default:

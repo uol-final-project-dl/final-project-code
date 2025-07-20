@@ -36,7 +36,7 @@ class IdeaGenerationService
         }
 
         Guidelines:
-        - Each idea must describe a simple frontend React prototype.
+        - Each idea must describe a React prototype.
         - All prototypes should use only the "antd" UI framework.
         - Each description should clearly specify:
           - The purpose of the prototype.

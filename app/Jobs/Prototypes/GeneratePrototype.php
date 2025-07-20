@@ -35,8 +35,8 @@ class GeneratePrototype implements ShouldQueue
     public function handle(): void
     {
         $uuid = $this->prototype->uuid;
-        $patchRel = "jobs/$uuid/patch-App.jsx";
-        $workDir = storage_path("app/private/jobs/$uuid");
+        $patchFile = "jobs/$uuid/patch-App.jsx";
+        $workDirectory = storage_path("app/private/jobs/$uuid");
 
         Storage::disk('local')->makeDirectory("jobs/$uuid");
 
@@ -44,7 +44,7 @@ class GeneratePrototype implements ShouldQueue
         // Call the LLM to generate the React code
         $reactCode = $this->generateWithLLM($this->prototype->title . ' : ' . $this->prototype->description);
 
-        Storage::disk('local')->put($patchRel, $reactCode);
+        Storage::disk('local')->put($patchFile, $reactCode);
 
         // Might need to change when going to production
         $containerId = trim(getenv('HOSTNAME'));
@@ -71,8 +71,8 @@ class GeneratePrototype implements ShouldQueue
             return;
         }
 
-        $zipPath = "$workDir/$uuid.zip";
-        $result = Process::path("$workDir/dist")->run([
+        $zipPath = "$workDirectory/$uuid.zip";
+        $result = Process::path("$workDirectory/dist")->run([
             'zip', '-qr', $zipPath, '.'
         ]);
 

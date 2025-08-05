@@ -128,6 +128,19 @@ services:
         entrypoint: [ "dumb-init", "--" ]
         command: [ "sleep", "infinity" ]
 
+    python-service:
+        build:
+            context: ./docker/python-service
+            dockerfile: python.dockerfile
+        image: python-service:latest
+        entrypoint: [ "dumb-init", "--" ]
+        command: [ "sleep", "infinity" ]
+        volumes:
+            - .:/var/www/html
+            - /var/run/docker.sock:/var/run/docker.sock
+        networks:
+            - uol-network
+
 volumes:
     upload_dir_uol:
     mysql_data_uol:

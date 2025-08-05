@@ -31,7 +31,7 @@ export default function ProjectBrainstormingRequestData({project}: { project: IP
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
                         }
                     }
-                    accept=".txt,.pdf,.mp4,.mp3"
+                    accept=".txt,.pdf,.mp4,.mp3,.png,.jpg,.jpeg"
                     multiple={true}
                     showUploadList={true}
                     onChange={(info) => {

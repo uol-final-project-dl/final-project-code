@@ -5,6 +5,7 @@ namespace App\Jobs\Brainstorming;
 use App\Enums\StatusEnum;
 use App\Models\ProjectDocument;
 use App\Services\FFMPEG\FFMPEGService;
+use App\Services\PythonServices\ImageCaptionService;
 use App\Services\Whisper\WhisperService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -62,6 +63,10 @@ class ProcessProjectDocumentJob implements ShouldQueue
                     'status' => StatusEnum::READY->value,
                     'error_message' => null,
                 ]);
+                break;
+            case 'image/png':
+            case 'image/jpeg':
+                $this->processImage($fileContent);
                 break;
             default:
                 $this->projectDocument->update([
@@ -162,6 +167,27 @@ class ProcessProjectDocumentJob implements ShouldQueue
         $this->projectDocument->update([
             'status' => StatusEnum::FAILED->value,
             'error_message' => 'Transcription failed',
+        ]);
+    }
+
+    private function processImage($contents): void
+    {
+        $tmpFilePath = storage_path('app/tmp/' . Str::uuid() . '_project_document_' . $this->projectDocument->id . '.image');
+        file_put_contents($tmpFilePath, $contents);
+        $caption = ImageCaptionService::caption($tmpFilePath);
+
+        if ($caption) {
+            $this->projectDocument->update([
+                'content' => $caption,
+                'status' => StatusEnum::READY->value,
+                'error_message' => null,
+            ]);
+            return;
+        }
+
+        $this->projectDocument->update([
+            'status' => StatusEnum::FAILED->value,
+            'error_message' => 'Captioning failed',
         ]);
     }
 

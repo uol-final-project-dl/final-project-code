@@ -41,7 +41,6 @@ class GeneratePrototype implements ShouldQueue
 
         Storage::disk('local')->makeDirectory("jobs/$uuid");
 
-
         // Call the LLM to generate the React code
         $reactCode = $this->generateWithLLM($this->prototype->title . ' : ' . $this->prototype->description);
 

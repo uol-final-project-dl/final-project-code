@@ -39,12 +39,12 @@ class SingleProjectController extends Controller
 
         request()->validate(
             [
-                'file' => 'required|file|mimes:pdf,txt,mp4,mp3|max:512000',
+                'file' => 'required|file|mimes:pdf,txt,mp4,mp3,png,jpg|max:512000',
             ],
             [
                 'file.required' => 'Please upload at least one document.',
                 'file.file' => 'The uploaded file must be a valid file.',
-                'file.mimes' => 'Only PDF, TXT, MP4, MP3 files are allowed.',
+                'file.mimes' => 'Only PDF, TXT, MP4, MP3, JPG, PNG files are allowed.',
                 'file.max' => 'The uploaded file may not be greater than 500MB.',
             ]
         );

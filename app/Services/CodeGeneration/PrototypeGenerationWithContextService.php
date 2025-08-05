@@ -9,7 +9,7 @@ class PrototypeGenerationWithContextService
 {
     use HasMakeAble;
 
-    private function buildMessages(string $userPrompt): array
+    private function buildMessages(string $userPrompt, string $codeSoFar = null): array
     {
         $package = file_get_contents(base_path('docker/react-buildbox/templates/base/package.json'));
         $baseline = file_get_contents(base_path('docker/react-buildbox/templates/base/src/App.jsx'));
@@ -33,15 +33,21 @@ class PrototypeGenerationWithContextService
         Respond with only the new `App.jsx` source, ready to copy inside without any decorators (don't add "```jsx" for example).
         USR;
 
+        if ($codeSoFar) {
+            $user .= "\n\nPREVIOUS PARTIAL OUTPUT (incomplete—missing the rest of the file):\n```jsx\n{$codeSoFar}\n```\n"
+                . "Please **continue** from where you left off so that the final `App.jsx` is a complete, valid React component. "
+                . "When you finish, end with exactly `// END OF App.jsx`.";
+        }
+
         return [
             ['role' => 'system', 'content' => $system],
             ['role' => 'user', 'content' => $user],
         ];
     }
 
-    public function generate(string $userPrompt): string
+    public function generate(string $userPrompt, string $codeSoFar = null): string
     {
-        $messages = $this->buildMessages($userPrompt);
+        $messages = $this->buildMessages($userPrompt, $codeSoFar);
 
         $resp = OpenAI::chat()->create([
             'model' => 'gpt-4.1',

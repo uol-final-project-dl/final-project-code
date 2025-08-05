@@ -7,6 +7,7 @@ use App\Models\Prototype;
 use App\Services\CodeGeneration\PrototypeGenerationWithContextService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Process\ProcessResult;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -46,29 +47,38 @@ class GeneratePrototype implements ShouldQueue
 
         Storage::disk('local')->put($patchFile, $reactCode);
 
-        // Might need to change when going to production
-        $containerId = trim(getenv('HOSTNAME'));
-
-        $cmd = [
-            'docker', 'run', '--rm',
-            '--volumes-from', $containerId,
-            'brainstorm-to-prototype-react-buildbox:latest',
-            'sh', '-c',
-            "jobDir=/var/www/html/storage/app/private/jobs/$uuid &&
-             cp \$jobDir/patch-App.jsx /app/templates/base/src/App.jsx &&
-             cd /app/templates/base &&
-             yarn vite build --outDir \$jobDir/dist"
-        ];
-
-        $result = Process::run($cmd);
+        $result = $this->runCompilation($uuid);
 
         // Try to handle the result of the process
         if ($result->failed()) {
-            $this->prototype->update([
-                'status' => StatusEnum::FAILED->value,
-                'log' => $result->errorOutput(),
-            ]);
-            return;
+            $errorOutput = $result->errorOutput();
+
+            $incomplete = preg_match(
+                '/(Unexpected end of file|Unterminated string literal|Expected .* but found end of file)/i',
+                $errorOutput
+            );
+
+            if ($incomplete) {
+                $newResult = $this->continueGeneratingWithLLM(
+                    $patchFile,
+                    $reactCode,
+                    $uuid
+                );
+
+                if ($newResult->failed()) {
+                    $this->prototype->update([
+                        'status' => StatusEnum::FAILED->value,
+                        'log' => $newResult->errorOutput(),
+                    ]);
+                    return;
+                }
+            } else {
+                $this->prototype->update([
+                    'status' => StatusEnum::FAILED->value,
+                    'log' => $result->errorOutput(),
+                ]);
+                return;
+            }
         }
 
         $zipPath = "$workDirectory/$uuid.zip";
@@ -88,5 +98,33 @@ class GeneratePrototype implements ShouldQueue
     private function generateWithLLM(string $prompt): string
     {
         return $this->prototypeGenerationWithContextService->generate($prompt);
+    }
+
+    private function continueGeneratingWithLLM(string $patchFile, string $codeSoFar, string $uuid): ProcessResult
+    {
+        $rest = $this->prototypeGenerationWithContextService->generate($this->prototype->title . ' : ' . $this->prototype->description, $codeSoFar);
+
+        Storage::disk('local')->put($patchFile, $codeSoFar . "\n" . $rest);
+
+        return $this->runCompilation($uuid);
+    }
+
+    private function runCompilation(string $uuid): ProcessResult
+    {
+        // Might need to change when going to production server
+        $containerId = trim(getenv('HOSTNAME'));
+
+        $cmd = [
+            'docker', 'run', '--rm',
+            '--volumes-from', $containerId,
+            'brainstorm-to-prototype-react-buildbox:latest',
+            'sh', '-c',
+            "jobDir=/var/www/html/storage/app/private/jobs/$uuid &&
+             cp \$jobDir/patch-App.jsx /app/templates/base/src/App.jsx &&
+             cd /app/templates/base &&
+             yarn vite build --outDir \$jobDir/dist"
+        ];
+
+        return Process::run($cmd);
     }
 }

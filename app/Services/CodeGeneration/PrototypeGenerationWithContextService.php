@@ -15,7 +15,7 @@ class PrototypeGenerationWithContextService
         $package = file_get_contents(base_path('docker/react-buildbox/templates/base/package.json'));
         $baseline = file_get_contents(base_path('docker/react-buildbox/templates/base/src/App.jsx'));
 
-        $baselineCode = $remixDescription ? $oldCode : $baseline;
+        $baselineCode = $oldCode ?? $baseline;
 
         $system = <<<SYS
         You are an expert React engineer who can generate React code based on a user prompt.

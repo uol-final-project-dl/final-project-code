@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ProjectIdea $project_idea
  * @property int $user_id
  * @property User $user
+ * @property mixed $log
  */
 class Prototype extends Model
 {

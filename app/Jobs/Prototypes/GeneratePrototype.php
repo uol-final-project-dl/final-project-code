@@ -48,6 +48,11 @@ class GeneratePrototype implements ShouldQueue
         Storage::disk('local')->makeDirectory("jobs/$uuid");
 
         $prompt = $this->prototype->title . ' : ' . $this->prototype->description;
+
+        if ($this->prototype->log && $this->prototype->log !== '') {
+            $prompt .= "\n\n COMPILATION ERROR ON PREVIOUS GENERATION:" . $this->prototype->log . "\n\n";
+        }
+
         // Call the LLM to generate the React code
         $reactCode = $this->generateWithLLM($prompt);
 

@@ -8,6 +8,7 @@ import Layout from "./pages/layout/Layout";
 import Projects from "./pages/Projects/Projects";
 import ProjectForm from "./pages/Projects/ProjectForm";
 import SingleProject from "./pages/SingleProject/SingleProject";
+import Settings from "./pages/Settings/Settings";
 
 export default function AppRoutes() {
     const mainSectionContainerRef = useRef<HTMLDivElement>(null)
@@ -32,6 +33,15 @@ export default function AppRoutes() {
                                 element={
                                     <Layout selectedKey={UserRoutes.HOME} title={"Home"}>
                                         <Home/>
+                                    </Layout>
+                                }
+                            />
+
+                            <Route
+                                path="user/app/settings"
+                                element={
+                                    <Layout selectedKey={UserRoutes.SETTINGS} title={"Settings"}>
+                                        <Settings/>
                                     </Layout>
                                 }
                             />

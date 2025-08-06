@@ -38,6 +38,7 @@ function* checkUserStatus(): any {
                 yield put({type: 'SET_AUTH_IS_LOGGED_IN', payload: {isLoggedIn: true}});
                 yield put({type: 'SET_AUTH_IS_TFA_VALID', payload: {isTfaValid: true}});
                 yield put({type: 'SET_AUTH_IS_USER_VALID', payload: {isUserValid: true}});
+                yield put({type: 'SET_PROVIDER', payload: {provider: response.data.provider}});
                 break;
             default:
                 yield put({type: 'SET_AUTH_IS_LOGGED_IN', payload: {isLoggedIn: false}});

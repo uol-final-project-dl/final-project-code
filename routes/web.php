@@ -7,8 +7,11 @@ use App\Http\Controllers\Prototypes\RetryFailedPrototypeController;
 use App\Http\Controllers\Prototypes\ViewPrototypeController;
 use App\Http\Controllers\User\LoginController;
 use App\Http\Controllers\User\MainController;
+use App\Http\Controllers\User\SettingsController;
 use App\Http\Controllers\User\SignupController;
 use Illuminate\Support\Facades\Route;
+
+$authMiddleware = 'auth:sanctum';
 
 Route::get('/', function () {
     return redirect()->route('users.home');
@@ -20,17 +23,21 @@ Route::get('/user/app/{path?}', [MainController::class, 'index'])
 
 Route::get('/user/logout', [LoginController::class, 'logout']);
 
-Route::group(['prefix' => 'api', 'as' => 'api.'], static function () {
+Route::group(['prefix' => 'api', 'as' => 'api.'], static function () use ($authMiddleware) {
     Route::post('/user/postLogin', [LoginController::class, 'postLogin']);
     Route::post('/user/postSignup', [SignupController::class, 'postSignup']);
 
     Route::get('/checkUserStatus', static function () {
         return response()->json([
-            'isAuthenticated' => true
+            'isAuthenticated' => true,
+            'provider' => auth()->user()->provider ?? 'openai',
         ]);
-    })->middleware('auth:sanctum');
+    })->middleware($authMiddleware);
 
-    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::middleware([$authMiddleware])->group(function () {
+        // SETTINGS
+        Route::post('/settings', [SettingsController::class, 'updateSettings']);
+
         // PROJECTS LIST
         Route::get('/projects', [ProjectsController::class, 'getProjects']);
         Route::post('/project/create', [ProjectsController::class, 'createProject']);
@@ -51,7 +58,7 @@ Route::group(['prefix' => 'api', 'as' => 'api.'], static function () {
 });
 
 // PROTOTYPES
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware([$authMiddleware])->group(function () {
     Route::get('/prototype/{prototype}/asset/{file?}', [ViewPrototypeController::class, 'getPrototypeFile'])
         ->where('file', '.*');
 

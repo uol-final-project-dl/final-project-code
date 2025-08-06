@@ -1,6 +1,7 @@
 const initialState = {
     pageTitle: 'Final Project',
-    toast: null
+    toast: null,
+    provider: 'openai',
 };
 
 export default function (state = initialState, action: any) {
@@ -20,6 +21,13 @@ export default function (state = initialState, action: any) {
             return {
                 ...state,
                 toast: null
+            };
+        }
+        case "SET_PROVIDER": {
+            const {provider} = action.payload;
+            return {
+                ...state,
+                provider: provider
             };
         }
         default:

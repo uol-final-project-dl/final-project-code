@@ -32,6 +32,7 @@ function App() {
 
         setupPusher().then(() => {
             dispatch({type: 'FETCH_AUTH_STATUS'});
+            dispatch({type: 'DATA_FETCH_REQUESTED'});
         });
     }, [])
 

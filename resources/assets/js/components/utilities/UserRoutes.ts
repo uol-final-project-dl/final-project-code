@@ -1,6 +1,7 @@
 enum UserRoutes {
     HOME = 'home',
     PROJECTS = 'projects',
+    SETTINGS = 'settings'
 }
 
 export default UserRoutes;

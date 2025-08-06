@@ -7,7 +7,7 @@ import {Content, Header} from 'antd/es/layout/layout';
 import './styles.less';
 import {Layout as AntdLayout, Menu} from "antd";
 import Sider from 'antd/es/layout/Sider';
-import {DashboardFilled, DoubleLeftOutlined, DoubleRightOutlined, StarFilled} from "@ant-design/icons";
+import {DashboardFilled, DoubleLeftOutlined, DoubleRightOutlined, SettingFilled, StarFilled} from "@ant-design/icons";
 import {ItemType, MenuItemType} from "antd/es/menu/interface";
 import UserRoutes from "../../utilities/UserRoutes";
 
@@ -25,6 +25,7 @@ const Layout = ({selectedKey, title, children}: IProps) => {
     const ICON_MAP = {
         [UserRoutes.HOME]: <DashboardFilled/> as React.ReactNode,
         [UserRoutes.PROJECTS]: <StarFilled/> as React.ReactNode,
+        [UserRoutes.SETTINGS]: <SettingFilled/> as React.ReactNode,
     };
 
     const menuItems: ItemType<MenuItemType>[] = [
@@ -38,6 +39,11 @@ const Layout = ({selectedKey, title, children}: IProps) => {
             icon: ICON_MAP[UserRoutes.PROJECTS] ?? <DashboardFilled/>,
             label: 'Projects',
         },
+        {
+            key: UserRoutes.SETTINGS,
+            icon: ICON_MAP[UserRoutes.SETTINGS] ?? <DashboardFilled/>,
+            label: 'Settings',
+        }
     ]
 
     const handleOnCollapse = (value: boolean): void => {

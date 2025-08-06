@@ -21,7 +21,7 @@
         <iframe
             title="Prototype Viewer"
             src="{{ "/prototype/{$prototype->id}/asset/" }}"
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts allow-same-origin allow-forms"
             style="width: 100vw; height: 100vh; border: none;"
             referrerpolicy="no-referrer"
         ></iframe>

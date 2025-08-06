@@ -59,6 +59,17 @@ export default function ProjectForm() {
                 />
             </Form.Item>
 
+            <Form.Item
+                label={'Style configuration (optional)'}
+                name="style_config"
+                rules={[{required: false}]}
+            >
+                <Input.TextArea
+                    placeholder="Enter style configuration if you have any specific requirements for the project, such as color schemes, fonts, etc."
+                    rows={4}
+                />
+            </Form.Item>
+
             <Button type="primary" htmlType={'submit'}>Submit</Button>
         </Form>
         <div className={'d-flex justify-content-end mb-4'}>

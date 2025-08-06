@@ -22,15 +22,21 @@ class GeneratePrototype implements ShouldQueue
     public int $timeout = 600;
 
     private PrototypeGenerationWithContextService $prototypeGenerationWithContextService;
+    private bool $remix;
+    private string|null $remixDescription;
 
     /**
      * @throws BindingResolutionException
      */
     public function __construct(
-        public Prototype $prototype,
+        public Prototype   $prototype,
+        public bool        $remixConstruct = false,
+        public string|null $remixDescriptionConstruct = null
     )
     {
         $this->prototypeGenerationWithContextService = PrototypeGenerationWithContextService::make();
+        $this->remix = $remixConstruct ?? false;
+        $this->remixDescription = $remixDescriptionConstruct ?? null;
     }
 
     public function handle(): void
@@ -41,8 +47,9 @@ class GeneratePrototype implements ShouldQueue
 
         Storage::disk('local')->makeDirectory("jobs/$uuid");
 
+        $prompt = $this->prototype->title . ' : ' . $this->prototype->description;
         // Call the LLM to generate the React code
-        $reactCode = $this->generateWithLLM($this->prototype->title . ' : ' . $this->prototype->description);
+        $reactCode = $this->generateWithLLM($prompt);
 
         Storage::disk('local')->put($patchFile, $reactCode);
 
@@ -59,6 +66,7 @@ class GeneratePrototype implements ShouldQueue
 
             if ($incomplete) {
                 $newResult = $this->continueGeneratingWithLLM(
+                    $prompt,
                     $patchFile,
                     $reactCode,
                     $uuid
@@ -96,12 +104,22 @@ class GeneratePrototype implements ShouldQueue
 
     private function generateWithLLM(string $prompt): string
     {
-        return $this->prototypeGenerationWithContextService->generate($prompt);
+        if ($this->remix && $this->remixDescription) {
+            $oldCode = Storage::disk('local')->get("jobs/{$this->prototype->uuid}/patch-App.jsx");
+            return $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt, null, $oldCode, $this->remixDescription);
+        }
+
+        return $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt);
     }
 
-    private function continueGeneratingWithLLM(string $patchFile, string $codeSoFar, string $uuid): ProcessResult
+    private function continueGeneratingWithLLM(string $prompt, string $patchFile, string $codeSoFar, string $uuid): ProcessResult
     {
-        $rest = $this->prototypeGenerationWithContextService->generate($this->prototype->title . ' : ' . $this->prototype->description, $codeSoFar);
+        if ($this->remix && $this->remixDescription) {
+            $oldCode = Storage::disk('local')->get("jobs/{$this->prototype->uuid}/patch-App.jsx");
+            $rest = $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt, $codeSoFar, $oldCode, $this->remixDescription);
+        } else {
+            $rest = $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt, $codeSoFar);
+        }
 
         Storage::disk('local')->put($patchFile, $codeSoFar . "\n" . $rest);
 

@@ -26,6 +26,7 @@ class ProjectsController extends Controller
         $project = $user->projects()->create([
             'name' => request('name'),
             'description' => request('description'),
+            'style_config' => request('style_config'),
         ]);
 
         return [

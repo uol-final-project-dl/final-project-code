@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $ranking
  * @property int $id
  * @property Project $project
+ * @property int $project_id
  */
 class ProjectIdea extends Model
 {

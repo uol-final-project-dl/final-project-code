@@ -27,6 +27,7 @@ export default interface IProject {
     id: number;
     name: string;
     description: string;
+    style_config: string;
     stage: string;
     status: string;
     project_ideas: IProjectIdea[];

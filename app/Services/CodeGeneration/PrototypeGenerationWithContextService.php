@@ -2,6 +2,7 @@
 
 namespace App\Services\CodeGeneration;
 
+use App\Models\Prototype;
 use App\Traits\HasMakeAble;
 use OpenAI\Laravel\Facades\OpenAI;
 
@@ -9,10 +10,12 @@ class PrototypeGenerationWithContextService
 {
     use HasMakeAble;
 
-    private function buildMessages(string $userPrompt, string $codeSoFar = null): array
+    private function buildMessages(string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null): array
     {
         $package = file_get_contents(base_path('docker/react-buildbox/templates/base/package.json'));
         $baseline = file_get_contents(base_path('docker/react-buildbox/templates/base/src/App.jsx'));
+
+        $baselineCode = $remixDescription ? $oldCode : $baseline;
 
         $system = <<<SYS
         You are an expert React engineer who can generate React code based on a user prompt.
@@ -26,12 +29,16 @@ class PrototypeGenerationWithContextService
         ```json
         {$package}
         BASELINE APP.JSX (read-only context)
-        {$baseline}
+        {$baselineCode}
         REQUEST:
         {$userPrompt}
 
         Respond with only the new `App.jsx` source, ready to copy inside without any decorators (don't add "```jsx" for example).
         USR;
+
+        if ($remixDescription) {
+            $user .= "\n\nIMPORTANT INSTRUCTIONS:\n You must implement the following changes on the baseline App.JSX: '{$remixDescription}'\n";
+        }
 
         if ($codeSoFar) {
             $user .= "\n\nPREVIOUS PARTIAL OUTPUT (incomplete—missing the rest of the file):\n```jsx\n{$codeSoFar}\n```\n"
@@ -45,15 +52,19 @@ class PrototypeGenerationWithContextService
         ];
     }
 
-    public function generate(string $userPrompt, string $codeSoFar = null): string
+    public function generate(Prototype $prototype, string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null): string
     {
-        $messages = $this->buildMessages($userPrompt, $codeSoFar);
+        if ($prototype->project_idea->project->style_config) {
+            $userPrompt .= "\n\n STYLE PREFERENCES: \n" . $prototype->project_idea->project->style_config . "\n";
+        }
+
+        $messages = $this->buildMessages($userPrompt, $codeSoFar, $oldCode, $remixDescription);
 
         $resp = OpenAI::chat()->create([
             'model' => 'gpt-4.1',
             'temperature' => 0.2,
             'messages' => $messages,
-            'max_tokens' => 3000,
+            'max_tokens' => 6000,
         ]);
 
         return $resp['choices'][0]['message']['content'] ?? '';

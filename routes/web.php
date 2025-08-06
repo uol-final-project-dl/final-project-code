@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Projects\ProjectsController;
 use App\Http\Controllers\Projects\SingleProjectController;
+use App\Http\Controllers\Prototypes\RemixPrototypeController;
+use App\Http\Controllers\Prototypes\RetryFailedPrototypeController;
 use App\Http\Controllers\Prototypes\ViewPrototypeController;
 use App\Http\Controllers\User\LoginController;
 use App\Http\Controllers\User\MainController;
@@ -40,6 +42,10 @@ Route::group(['prefix' => 'api', 'as' => 'api.'], static function () {
 
         // BRAINSTORMING
         Route::post('/project/{id}/brainstorming/upload-documents', [SingleProjectController::class, 'uploadDocuments']);
+
+        // PROTOTYPING
+        Route::post('/project/{project}/prototype/{prototype}/remix', [RemixPrototypeController::class, 'remixPrototype']);
+        Route::get('/project/{project}/prototype/{prototype}/retry', [RetryFailedPrototypeController::class, 'retryPrototype']);
 
     });
 });

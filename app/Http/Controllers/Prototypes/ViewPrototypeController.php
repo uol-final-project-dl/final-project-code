@@ -44,7 +44,7 @@ class ViewPrototypeController extends Controller
             200,
             [
                 'Content-Type' => $mimeType,
-                'Content-Security-Policy' => "default-src 'self';script-src  'self';connect-src 'self';style-src   'self' 'unsafe-inline';img-src  'self' data:;frame-ancestors 'self';",
+                'Content-Security-Policy' => "default-src 'self';script-src  'self';connect-src 'self';style-src   'self' 'unsafe-inline';img-src  'self' data:;frame-ancestors 'self'; form-action 'self';",
                 'X-Frame-Options' => 'SAMEORIGIN',
                 'Referrer-Policy' => 'no-referrer',
             ]

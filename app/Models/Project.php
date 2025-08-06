@@ -14,6 +14,7 @@ use Illuminate\Support\Collection;
  * @property Collection<ProjectIdea> $project_ideas
  * @property int $user_id
  * @property string | null $style_config
+ * @property User $user
  */
 class Project extends Model
 {

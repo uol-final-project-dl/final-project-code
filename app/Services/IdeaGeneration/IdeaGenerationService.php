@@ -2,9 +2,8 @@
 
 namespace App\Services\IdeaGeneration;
 
+use App\Services\LLM\LLMCompletionService;
 use App\Traits\HasMakeAble;
-use Illuminate\Support\Facades\Log;
-use OpenAI\Laravel\Facades\OpenAI;
 
 class IdeaGenerationService
 {
@@ -58,26 +57,17 @@ class IdeaGenerationService
     }
 
     /**
-     * @throws \JsonException
+     * @throws \Exception
      */
-    public static function generateIdeas(string $context): array
+    public static function generateIdeas(string $provider, string $context): string
     {
         $messages = self::buildMessages($context);
 
-        $resp = OpenAI::chat()->create([
-            'model' => 'gpt-4o-mini',
+        return LLMCompletionService::chat($provider, [
+            'model' => 'ideation',
             'temperature' => 0.7,
             'messages' => $messages,
             'max_tokens' => 3000,
         ]);
-
-        $content = $resp['choices'][0]['message']['content'] ?? '';
-
-        Log::info('LLM usage', $resp['usage'] ?? []);
-
-        return [
-            'answer' => $content,
-            'usage' => $resp['usage'] ?? null,
-        ];
     }
 }

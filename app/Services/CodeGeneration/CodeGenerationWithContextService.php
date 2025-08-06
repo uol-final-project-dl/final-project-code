@@ -2,11 +2,11 @@
 
 namespace App\Services\CodeGeneration;
 
+use App\Services\LLM\LLMCompletionService;
 use App\Services\VectorDB\SearchVectorDBService;
 use App\Traits\HasMakeAble;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use OpenAI\Laravel\Facades\OpenAI;
 
 class CodeGenerationWithContextService
 {
@@ -58,18 +58,19 @@ class CodeGenerationWithContextService
 
     /**
      * @throws \JsonException
+     * @throws \Exception
      */
-    public function generateCode(string $userPrompt): array
+    public function generateCode(string $provider, string $userPrompt): array
     {
         $chunks = SearchVectorDBService::searchFileChunks($userPrompt);
 
         $messages = $this->buildMessages($userPrompt, $chunks);
 
-        $resp = OpenAI::chat()->create([
-            'model' => 'gpt-4o-mini',
+        $resp = LLMCompletionService::chat($provider, [
+            'model' => 'coding',
             'temperature' => 0.2,
             'messages' => $messages,
-            'max_tokens' => 2048,
+            'max_tokens' => 6000,
         ]);
 
         $content = $resp['choices'][0]['message']['content'] ?? '';

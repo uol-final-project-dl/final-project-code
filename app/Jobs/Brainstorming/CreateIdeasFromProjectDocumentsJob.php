@@ -28,6 +28,7 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
 
     /**
      * @throws \JsonException
+     * @throws \Exception
      */
     public function handle(): void
     {
@@ -59,7 +60,9 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
 
         $context .= implode("\n\n", $contextDocuments);
 
-        $answer = IdeaGenerationService::generateIdeas($context)['answer'];
+        $provider = $project->user->provider;
+
+        $answer = IdeaGenerationService::generateIdeas($provider, $context);
 
         $cleanedAnswer = trim($answer, "\" \n\r\t");
 

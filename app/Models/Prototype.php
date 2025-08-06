@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property mixed $status
  * @property ProjectIdea $project_idea
  * @property int $user_id
+ * @property User $user
  */
 class Prototype extends Model
 {
@@ -35,6 +36,11 @@ class Prototype extends Model
     public function project_idea(): BelongsTo
     {
         return $this->belongsTo(ProjectIdea::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     protected static function booted(): void

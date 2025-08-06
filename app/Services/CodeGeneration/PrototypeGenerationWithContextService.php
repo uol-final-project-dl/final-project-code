@@ -3,8 +3,8 @@
 namespace App\Services\CodeGeneration;
 
 use App\Models\Prototype;
+use App\Services\LLM\LLMCompletionService;
 use App\Traits\HasMakeAble;
-use OpenAI\Laravel\Facades\OpenAI;
 
 class PrototypeGenerationWithContextService
 {
@@ -52,6 +52,9 @@ class PrototypeGenerationWithContextService
         ];
     }
 
+    /**
+     * @throws \Exception
+     */
     public function generate(Prototype $prototype, string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null): string
     {
         if ($prototype->project_idea->project->style_config) {
@@ -59,14 +62,13 @@ class PrototypeGenerationWithContextService
         }
 
         $messages = $this->buildMessages($userPrompt, $codeSoFar, $oldCode, $remixDescription);
+        $provider = $prototype->user->provider;
 
-        $resp = OpenAI::chat()->create([
-            'model' => 'gpt-4.1',
+        return LLMCompletionService::chat($provider, [
+            'model' => 'coding',
             'temperature' => 0.2,
             'messages' => $messages,
             'max_tokens' => 6000,
         ]);
-
-        return $resp['choices'][0]['message']['content'] ?? '';
     }
 }

@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
 
 /**
  * @property int $id
+ * @property string $provider
  */
 class User extends Authenticatable
 {
@@ -27,6 +28,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'provider'
     ];
 
     /**

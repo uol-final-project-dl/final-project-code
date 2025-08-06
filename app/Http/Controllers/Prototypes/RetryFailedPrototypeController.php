@@ -29,7 +29,6 @@ class RetryFailedPrototypeController extends Controller
 
         $prototype->update([
             'status' => StatusEnum::QUEUED->value,
-            'log' => ''
         ]);
 
         GeneratePrototype::dispatch($prototype);

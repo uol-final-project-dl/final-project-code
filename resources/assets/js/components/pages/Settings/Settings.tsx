@@ -33,9 +33,13 @@ export default function Settings() {
                         name="provider"
                     >
                         <Radio.Group>
-                            <Radio value="openai">OpenAI</Radio>
-                            <Radio value="anthropic">Anthropic</Radio>
-                            <Radio value="google">Google</Radio>
+                            <br/>
+                            <Radio value="openai">OpenAI (Ideation: gpt-4o-mini & Coding: gpt-4.1)</Radio>
+                            <br/>
+                            <Radio value="anthropic">Anthropic (Ideation: Claude Haiku 3.5 & Coding: Claude Sonnet
+                                4)</Radio>
+                            <br/>
+                            <Radio value="google">Google (Ideation: Gemini 2.5 Flash & Coding: Gemini 2.5 Pro)</Radio>
                         </Radio.Group>
                     </Form.Item>
 

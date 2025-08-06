@@ -19,7 +19,7 @@ class PrototypeGenerationWithContextService
 
         $system = <<<SYS
         You are an expert React engineer who can generate React code based on a user prompt.
-        You can use Ant Design components. Use inline styles for custom CSS to make it look good.
+        You can use Ant Design v5 components. Use inline styles for custom CSS to make it look good.
         Return **only** the complete replacement for \`src/App.jsx\`. You must return **a complete file**.
         All imports must already exist in package.json; do not add any other files.
         SYS;
@@ -64,11 +64,14 @@ class PrototypeGenerationWithContextService
         $messages = $this->buildMessages($userPrompt, $codeSoFar, $oldCode, $remixDescription);
         $provider = $prototype->user->provider;
 
-        return LLMCompletionService::chat($provider, [
+        $code = LLMCompletionService::chat($provider, [
             'model' => 'coding',
             'temperature' => 0.2,
             'messages' => $messages,
             'max_tokens' => 6000,
         ]);
+
+        $cleanedCode = preg_replace('/```(?:json|jsx)?\n?/', '', $code);
+        return trim($cleanedCode, "\" \n\r\t");
     }
 }

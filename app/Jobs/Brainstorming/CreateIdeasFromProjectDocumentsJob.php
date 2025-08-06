@@ -64,7 +64,8 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
 
         $answer = IdeaGenerationService::generateIdeas($provider, $context);
 
-        $cleanedAnswer = trim($answer, "\" \n\r\t");
+        $cleanedAnswer = preg_replace('/```(?:json)?\n?/', '', $answer);
+        $cleanedAnswer = trim($cleanedAnswer, "\" \n\r\t");
 
         try {
             $ideas = json_decode($cleanedAnswer, true, 512, JSON_THROW_ON_ERROR);

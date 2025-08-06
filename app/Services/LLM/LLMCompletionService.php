@@ -3,6 +3,7 @@
 namespace App\Services\LLM;
 
 use App\Services\Anthropic\AnthropicCompletionService;
+use App\Services\Google\GoogleCompletionService;
 use App\Services\OpenAI\OpenAICompletionsService;
 
 class LLMCompletionService
@@ -28,8 +29,27 @@ class LLMCompletionService
                     'max_tokens' => $config['max_tokens'] ?? 3000,
                 ]);
             case 'google':
-                // Placeholder for Google
-                throw new \Exception('Google AI API not implemented yet');
+                return GoogleCompletionService::chat([
+                    'model' => self::translateModelFromProvider($provider, $config['model']),
+                    'system_instruction' => [
+                        "parts" =>
+                            [
+                                "text" => $config['messages'][0]['content'] ?? ''
+                            ]
+                    ],
+                    "contents" => array_map(static function ($msg) {
+                        return [
+                            'role' => $msg['role'] ?? 'user',
+                            'parts' => [
+                                ['text' => $msg['content'] ?? '']
+                            ]
+                        ];
+                    }, array_slice($config['messages'], 1)),
+                    "generationConfig" => [
+                        'temperature' => $config['temperature'] ?? 0.7,
+                        //'maxOutputTokens' => $config['max_tokens'] ?? 3000,
+                    ],
+                ]);
             default:
                 throw new \InvalidArgumentException("Unsupported provider: {$provider}");
         }
@@ -46,7 +66,10 @@ class LLMCompletionService
                 'coding' => 'claude-sonnet-4-20250514',
                 default => 'claude-3-5-haiku-latest',
             },
-            'google' => "google-{$model}",
+            'google' => match ($model) {
+                'coding' => 'gemini-2.5-pro',
+                default => 'gemini-2.5-flash',
+            },
             default => throw new \InvalidArgumentException("Unsupported provider: {$provider}"),
         };
     }

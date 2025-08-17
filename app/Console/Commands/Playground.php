@@ -3,12 +3,9 @@
 namespace App\Console\Commands;
 
 
-use App\Jobs\Prototypes\GeneratePrototype;
-use App\Models\Prototype;
 use App\Services\VectorDB\ChunkEmbeddingService;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Support\Str;
 
 class Playground extends Command
 {
@@ -24,7 +21,7 @@ class Playground extends Command
      *
      * @var string
      */
-    protected $description = 'Add embeddings for all articles.';
+    protected $description = 'Playground for new methods.';
 
     private ChunkEmbeddingService $chunkEmbeddingService;
 
@@ -85,14 +82,24 @@ class Playground extends Command
         //dd($codeGenerationService->generateCode("Make the + method a - instead using the operate.js file"));
 
 
-        $prototype = Prototype::query()->create([
+        /*$prototype = Prototype::query()->create([
             'user_id' => 1,
             'description' => "Make a calculator app that has a button to add two numbers together.",
             'status' => 'queued',
             'uuid' => (string)Str::uuid(),
         ]);
 
-        GeneratePrototype::dispatch($prototype);
+        GeneratePrototype::dispatch($prototype);*/
+
+        /*GithubRepositoriesService::createBranch('1039162805', 'test-114');
+
+        GithubRepositoriesService::createFile(
+            '1039162805',
+            'test-114',
+            'test.txt',
+            'This is a test file created from the command line.',
+            'Initial commit from command line'
+        );*/
 
     }
 }

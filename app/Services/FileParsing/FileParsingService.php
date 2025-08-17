@@ -45,8 +45,19 @@ class FileParsingService
         $path = parse_url($url, PHP_URL_PATH) ?? $url;
         $info = pathinfo($path);
 
+        // Dirname after the first 3 slashes
+        $dirname = dirname($path);
+        $dirname = Str::startsWith($dirname, '/') ? substr($dirname, 1) : $dirname;
+        $dirnameParts = explode('/', $dirname);
+
+        if (count($dirnameParts) > 3) {
+            $dirname = implode('/', array_slice($dirnameParts, 3));
+        } else {
+            $dirname = '';
+        }
+
         return [
-            'dirname' => $info['dirname'] ?? '',
+            'dirname' => $dirname,
             'basename' => $info['basename'] ?? '',
             'filename' => $info['filename'] ?? '',
             'extension' => $info['extension'] ?? '',

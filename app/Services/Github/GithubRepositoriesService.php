@@ -35,15 +35,7 @@ class GithubRepositoriesService
 
     public static function saveFilesFromRepo(int $projectId, string|int $repositoryId): void
     {
-        $repo = Github::repo()->showById($repositoryId);
-
-        if (empty($repo) || !isset($repo['owner']['login']) || !isset($repo['name'])) {
-            return;
-        }
-
-        $owner = $repo['owner']['login'];
-        $name = $repo['name'];
-        $ref = $repo['default_branch'] ?? 'main';
+        [$owner, $name, $ref] = self::getRepoInfo($repositoryId);
         $path = '';
 
         self::crawlPath($projectId, $owner, $name, $path, $ref);
@@ -74,5 +66,123 @@ class GithubRepositoriesService
                 FileParsingService::parseFile($projectId, $url, $content);
             }
         }
+    }
+
+    public static function createBranch(string $repositoryId, string $branchName): void
+    {
+        [$owner, $name, $ref] = self::getRepoInfo($repositoryId);
+
+        $gitApi = GitHub::gitData();
+
+        $baseBranchInfo = $gitApi->references()->show($owner, $name, "heads/$ref");
+        $baseSha = $baseBranchInfo['object']['sha'];
+
+        $gitApi->references()->create($owner, $name,
+            [
+                "ref" => "refs/heads/$branchName",
+                "sha" => $baseSha
+            ]
+        );
+    }
+
+    private static function getRepoInfo(string $repositoryId): array
+    {
+        $repo = Github::repo()->showById($repositoryId);
+
+        if (empty($repo) || !isset($repo['owner']['login']) || !isset($repo['name'])) {
+            return [
+                '',
+                '',
+                ''
+            ];
+        }
+
+        $owner = $repo['owner']['login'];
+        $name = $repo['name'];
+        $ref = $repo['default_branch'] ?? 'main';
+
+        return [
+            $owner,
+            $name,
+            $ref,
+        ];
+    }
+
+    public static function updateFile(
+        string $repositoryId,
+        string $branchName,
+        string $filePath,
+        string $content,
+        string $commitMessage
+    ): void
+    {
+        [$owner, $name] = self::getRepoInfo($repositoryId);
+
+        $gitApi = GitHub::repo();
+
+        $fileInfo = $gitApi->contents()->show($owner, $name, $filePath, $branchName);
+        $sha = $fileInfo['sha'] ?? null;
+
+        $committer = array('name' => 'BrainstormingTool', 'email' => '226888094+devlomb123@users.noreply.github.com');
+
+        // Update the file
+        $gitApi->contents()->update(
+            $owner,
+            $name,
+            $filePath,
+            $content,
+            $commitMessage,
+            $sha,
+            $branchName,
+            $committer
+        );
+    }
+
+    public static function createFile(
+        string $repositoryId,
+        string $branchName,
+        string $filePath,
+        string $content,
+        string $commitMessage
+    ): void
+    {
+        [$owner, $name] = self::getRepoInfo($repositoryId);
+
+        $committer = array('name' => 'BrainstormingTool', 'email' => '226888094+devlomb123@users.noreply.github.com');
+
+        $gitApi = GitHub::repo();
+
+        $gitApi->contents()->create(
+            $owner,
+            $name,
+            $filePath,
+            $content,
+            $commitMessage,
+            $branchName,
+            $committer
+        );
+    }
+
+    public static function createPullRequest(
+        string $repositoryId,
+        string $branchName,
+        string $title,
+        string $body = ''
+    ): void
+    {
+        [$owner, $name, $ref] = self::getRepoInfo($repositoryId);
+
+        $gitApi = GitHub::pull_request();
+
+        $gitApi->create(
+            $owner,
+            $name,
+            [
+                'title' => $title,
+                'head' => $branchName,
+                'base' => $ref,
+                'body' => $body,
+            ]
+        );
     }
 }

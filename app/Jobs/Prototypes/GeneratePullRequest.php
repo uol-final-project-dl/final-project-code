@@ -5,6 +5,7 @@ namespace App\Jobs\Prototypes;
 use App\Enums\StatusEnum;
 use App\Models\Prototype;
 use App\Services\CodeGeneration\CodeGenerationWithContextService;
+use App\Services\Github\GithubRepositoriesService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -59,6 +60,38 @@ class GeneratePullRequest implements ShouldQueue
             return;
         }
 
+        GithubRepositoriesService::createBranch(
+            $this->prototype->project_idea->project->github_repository_id,
+            $this->prototype->uuid
+        );
+
+        foreach ($codeFiles as $codeFile) {
+            if ($codeFile['action'] === 'modify') {
+                GithubRepositoriesService::updateFile(
+                    $this->prototype->project_idea->project->github_repository_id,
+                    $this->prototype->uuid,
+                    $codeFile['repo_path'],
+                    $codeFile['content'],
+                    $this->prototype->title . ' - ' . $this->prototype->description
+                );
+            } elseif ($codeFile['action'] === 'create') {
+                GithubRepositoriesService::createFile(
+                    $this->prototype->project_idea->project->github_repository_id,
+                    $this->prototype->uuid,
+                    $codeFile['repo_path'],
+                    $codeFile['content'],
+                    $this->prototype->title . ' - ' . $this->prototype->description
+                );
+            }
+        }
+
+        // Create a pull request with the changes
+        GithubRepositoriesService::createPullRequest(
+            $this->prototype->project_idea->project->github_repository_id,
+            $this->prototype->uuid,
+            $this->prototype->title,
+            $this->prototype->description
+        );
 
         $this->prototype->update([
             'status' => StatusEnum::READY->value,

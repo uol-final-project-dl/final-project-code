@@ -12,14 +12,11 @@ class ChunkEmbeddingService
 {
     use HasMakeAble;
 
-    private int $maxLines = 300;
-    private int $overlapLines = 20;
-
-    public function codeToChunks(CodeFile $codeFile): Collection
+    public static function codeToChunks(CodeFile $codeFile): Collection
     {
         $fileHash = hash('sha256', $codeFile->content);
-        $imports = $this->extractImports($codeFile->content);
-        $exports = $this->extractExports($codeFile->content);
+        $imports = self::extractImports($codeFile->content);
+        $exports = self::extractExports($codeFile->content);
 
         $baseMetadata = [
             'file_name' => $codeFile->name,
@@ -29,36 +26,29 @@ class ChunkEmbeddingService
             'imports' => $imports,
             'exports' => $exports,
             'summary' => $codeFile->summary,
-            // TODO: wire a proper symbol inventory later
+            // TODO: write a better symbol inventory later
             'symbol_inventory' => implode(',', $exports),
+            'project_id' => $codeFile->project_id,
         ];
 
-        $lines = explode("\n", $codeFile->content);
-        $totalLines = count($lines);
-
-        $step = $this->maxLines - $this->overlapLines;
         $chunks = collect();
 
-        for ($i = 0, $n = 1; $i < $totalLines; $i += $step, $n++) {
-            $slice = array_slice($lines, $i, $this->maxLines);
-            $text = implode("\n", $slice);
+        // I prepent a line with the filename and path on the content
+        // (as a comment that works for most languages) just to help the LLM
+        $contentWithHeader = "/* Filename: {$codeFile->path}/{$codeFile->name} */\n\n" . $codeFile->content;
 
-            $chunkMetadata = $baseMetadata;
-            $chunkMetadata['chunk'] = $n;
-
-            $chunks->push(new VectorChunk(
-                id: "$codeFile->id#c$n",
-                text: $text,
-                metadata: $chunkMetadata,
-            ));
-        }
+        $chunks->push(new VectorChunk(
+            id: "$codeFile->id",
+            text: $contentWithHeader,
+            metadata: $baseMetadata,
+        ));
 
         return $chunks;
     }
 
-    public function saveFileEmbedding(CodeFile $codeFile): void
+    public static function saveFileEmbedding(CodeFile $codeFile): void
     {
-        $chunks = $this->codeToChunks($codeFile);
+        $chunks = self::codeToChunks($codeFile);
 
         foreach ($chunks as $chunk) {
             SyncChunkEmbedding::dispatch($chunk);
@@ -66,7 +56,7 @@ class ChunkEmbeddingService
     }
 
     // The extractImports method is found online not written by me
-    private function extractImports(string $content): array
+    private static function extractImports(string $content): array
     {
         preg_match_all('/^\s*import\s+[^\'"]+\s+from\s+[\'"]([^\'"]+)[\'"];/m',
             $content, $m1);
@@ -78,7 +68,7 @@ class ChunkEmbeddingService
     }
 
     // The extractExports method is found online not written by me
-    private function extractExports(string $content): array
+    private static function extractExports(string $content): array
     {
         $names = [];
 

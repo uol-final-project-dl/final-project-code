@@ -3,56 +3,41 @@
 namespace App\Services\FileParsing;
 
 use App\Models\CodeFile;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 class FileParsingService
 {
-    /**
-     * @throws ConnectionException
-     */
-    public static function parseFile(string $fileUrl): CodeFile
-    {
-        $content = self::readContents($fileUrl);
+    private static array $extensions = [
+        'js', 'ts', 'jsx', 'tsx', 'html', 'css', 'json', 'less', 'scss'
+    ];
 
+    public static function parseFile(int $projectId, string $fileUrl, string $content): void
+    {
         $info = self::pathInfoFromUrl($fileUrl);
         $extension = strtolower($info['extension'] ?? '');
+
+        // Only parse files with known extensions
+        if (!in_array($extension, self::$extensions, true)) {
+            return;
+        }
+
+        // Ignore files with -lock in the name
+        if (str_contains($info['basename'], '-lock')) {
+            return;
+        }
+
         $type = $extension ? ".$extension" : '';
 
         $summary = self::makeSummary($content, $type);
 
-        return CodeFile::query()->create([
+        CodeFile::query()->create([
+            'project_id' => $projectId,
             'name' => $info['basename'],
             'path' => $info['dirname'],
             'type' => $type,
             'summary' => $summary,
             'content' => $content,
         ]);
-    }
-
-    /**
-     * @throws ConnectionException
-     */
-    private static function readContents(string $url): string
-    {
-        // Remote fetching the file
-        if (Str::startsWith($url, ['http://', 'https://'])) {
-            $resp = Http::timeout(8)->get($url);
-
-            if (!$resp->ok()) {
-                throw new RuntimeException("Failed to download $url – HTTP {$resp->status()}");
-            }
-            return $resp->body();
-        }
-
-        // If it is a local path
-        if (!is_readable($url)) {
-            throw new RuntimeException("File not readable: $url");
-        }
-
-        return file_get_contents($url);
     }
 
     private static function pathInfoFromUrl(string $url): array

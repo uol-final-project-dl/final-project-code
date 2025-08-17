@@ -1,15 +1,25 @@
 import React from 'react';
 import './styles.less';
 import axios from "axios";
-import {Button, Form, Input} from "antd";
+import {Button, Form, Input, Select} from "antd";
 import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import UserRoutes, {fullRoute} from "../../utilities/UserRoutes";
+
+interface IRepository {
+    id: number;
+    name: string;
+}
 
 export default function ProjectForm() {
     const [form] = Form.useForm();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const repositories = useSelector(
+        (state: {
+            generals: { githubRepositories: IRepository[] }
+        }) => state.generals.githubRepositories
+    );
 
     const submit = () => {
         axios.post('/api/project/create',
@@ -69,6 +79,26 @@ export default function ProjectForm() {
                     rows={4}
                 />
             </Form.Item>
+
+            <Form.Item
+                label="Repository (optional)"
+                name="github_repository_id"
+                rules={[{required: false}]}
+            >
+                <Select
+                    placeholder="Select a repo from the list"
+                    showSearch
+                    optionFilterProp="children"
+                    allowClear
+                >
+                    {repositories.map((repo: IRepository) => (
+                        <Select.Option key={repo.id} value={repo.id}>
+                            {repo.name}
+                        </Select.Option>
+                    ))}
+                </Select>
+            </Form.Item>
+
 
             <Button type="primary" htmlType={'submit'}>Submit</Button>
         </Form>

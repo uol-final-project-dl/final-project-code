@@ -24,6 +24,10 @@ Route::get('/user/app/{path?}', [MainController::class, 'index'])
 Route::get('/user/logout', [LoginController::class, 'logout']);
 
 Route::group(['prefix' => 'api', 'as' => 'api.'], static function () use ($authMiddleware) {
+    Route::get('/getData', [MainController::class, 'getData'])
+        ->middleware($authMiddleware)
+        ->name('getData');
+
     Route::post('/user/postLogin', [LoginController::class, 'postLogin']);
     Route::post('/user/postSignup', [SignupController::class, 'postSignup']);
 

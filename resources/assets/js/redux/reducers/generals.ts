@@ -2,6 +2,7 @@ const initialState = {
     pageTitle: 'Final Project',
     toast: null,
     provider: 'openai',
+    githubRepositories: []
 };
 
 export default function (state = initialState, action: any) {
@@ -9,6 +10,7 @@ export default function (state = initialState, action: any) {
         case "SET_DATA": {
             return {
                 ...state,
+                githubRepositories: action.payload.githubRepositories,
             };
         }
         case "START_GENERAL_TOAST": {

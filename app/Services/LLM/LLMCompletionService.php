@@ -17,7 +17,7 @@ class LLMCompletionService
                         'model' => self::translateModelFromProvider($provider, $config['model']),
                         'messages' => $config['messages'],
                         'temperature' => $config['temperature'] ?? 0.7,
-                        'max_tokens' => $config['max_tokens'] ?? 3000,
+                        'max_completion_tokens' => $config['max_tokens'] ?? 3000,
                     ]);
             case 'anthropic':
                 return AnthropicCompletionService::chat([

@@ -3,7 +3,7 @@ import axios from "axios";
 
 function* fetchData(): any {
     try {
-        const json = yield axios.get(`/getData`)
+        const json = yield axios.get(`/api/getData`)
             .then(response => response.data,);
 
         yield put({type: "SET_DATA", payload: json});

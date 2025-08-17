@@ -4,8 +4,10 @@ namespace App\Jobs\Brainstorming;
 
 use App\Enums\ProjectStageEnum;
 use App\Enums\StatusEnum;
+use App\Models\CodeFile;
 use App\Models\Project;
 use App\Models\ProjectDocument;
+use App\Services\IdeaGeneration\IdeaGenerationFromRepoService;
 use App\Services\IdeaGeneration\IdeaGenerationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -62,7 +64,21 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
 
         $provider = $project->user->provider;
 
-        $answer = IdeaGenerationService::generateIdeas($provider, $context);
+        if ($project->github_repository_id) {
+            $contextFiles = '';
+
+            $project->refresh();
+            $files = $project->code_files;
+
+            foreach ($files as $file) {
+                $file = CodeFile::safeInstance($file);
+                $contextFiles .= "\n\n --- " . $file->path . '/' . $file->name . "--- \n" . $file->content;
+            }
+
+            $answer = IdeaGenerationFromRepoService::generateIdeas($provider, $context, $contextFiles);
+        } else {
+            $answer = IdeaGenerationService::generateIdeas($provider, $context);
+        }
 
         $cleanedAnswer = preg_replace('/```(?:json)?\n?/', '', $answer);
         $cleanedAnswer = trim($cleanedAnswer, "\" \n\r\t");

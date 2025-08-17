@@ -15,6 +15,8 @@ use Illuminate\Support\Collection;
  * @property int $user_id
  * @property string | null $style_config
  * @property User $user
+ * @property mixed $github_repository_id
+ * @property Collection<CodeFile> $code_files
  */
 class Project extends Model
 {
@@ -26,6 +28,7 @@ class Project extends Model
         'user_id',
         'name',
         'description',
+        'github_repository_id',
         'style_config',
         'stage',
         'status',
@@ -44,5 +47,10 @@ class Project extends Model
     public function project_ideas(): HasMany
     {
         return $this->hasMany(ProjectIdea::class);
+    }
+
+    public function code_files(): HasMany
+    {
+        return $this->hasMany(CodeFile::class);
     }
 }

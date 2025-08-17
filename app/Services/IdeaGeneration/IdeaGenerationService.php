@@ -67,7 +67,7 @@ class IdeaGenerationService
             'model' => 'ideation',
             'temperature' => 0.7,
             'messages' => $messages,
-            'max_tokens' => 3000,
+            'max_tokens' => 10000,
         ]);
     }
 }

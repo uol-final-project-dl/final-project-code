@@ -38,6 +38,9 @@ class CodeGenerationWithContextService
 
         Rules:
         - Do not add explanations or markdown outside the JSON.
+        - Each file must be a complete file, not just a diff.
+        - Each file must be a valid code file, ready to be used in the repository.
+        - Use the context provided to understand the existing code.
         - If you lack necessary context, respond instead with:
           { "NEED_FILE": "<repo_path>" }
         SYS;
@@ -70,7 +73,7 @@ class CodeGenerationWithContextService
             'model' => 'coding',
             'temperature' => 0.2,
             'messages' => $messages,
-            'max_tokens' => 6000,
+            'max_tokens' => 16000,
         ]);
 
         $content = $resp['choices'][0]['message']['content'] ?? '';

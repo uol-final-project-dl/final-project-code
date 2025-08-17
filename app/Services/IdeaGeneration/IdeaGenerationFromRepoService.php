@@ -25,18 +25,18 @@ class IdeaGenerationFromRepoService
         SYS;
 
         $user = <<<USR
-        Using the following repository context (files) and a brainstorming transcript, generate 8 to 10 distinct, technically detailed project issues.
+        Using the following repository context (files) and a brainstorming transcript, generate 8 to 10 distinct, technically detailed code change requests.
 
         Output only a JSON array. Each element must be an object:
         {
           "title": "<concise title of the issue>",
-          "description": "<technical description ready for code generation, using the file names and paths from the context>",
+          "description": "<technical description ready for code generation, using the file names from the context>",
           "ranking": "<1-10 ranking based on feasibility and impact>"
         }
 
         Guidelines:
         - Each issue must describe the changes to be made to the repository.
-        - All prototypes should use only the packages already present in the repository (package.json).
+        - All ideas should use only the packages already present in the repository (package.json).
         - Each description should clearly specify:
           - The purpose of the task.
           - Any important implementation considerations.

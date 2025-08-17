@@ -24,23 +24,23 @@ class SearchVectorDBService
     /**
      * @throws JsonException
      */
-    public static function searchFileChunks(string $prompt): Collection
+    public static function searchFileChunks(int $projectId, string $prompt): Collection
     {
         // Embed user prompt using the same model
         $vector = OpenAIEmbeddingsService::embed($prompt);
-        $vectorParam = '[' . implode(',', $vector) . ']';
+        $placeholders = implode(',', $vector);
+        $vectorLit = "vector'[$placeholders]'";
 
         $initial = collect(DB::connection('vector')->select(
-            'SELECT DISTINCT ON (metadata->>\'repo_path\')
-            id,
-            content,
-            metadata,
-            1 - (embed <=> ?::vector) AS score
-             FROM   kb_chunks
-             ORDER  BY metadata->>\'repo_path\',
-                      embed <=> ?::vector ASC
-             LIMIT  ?',
-            [$vectorParam, $vectorParam, self::PRIMARY_FILE_LIMIT]
+            "
+                SELECT id, content, metadata,
+                       1 - (embed <=> $vectorLit) AS score
+                FROM   kb_chunks
+                WHERE  metadata ->> 'project_id' = ?
+                ORDER  BY embed <=> $vectorLit
+                LIMIT  ?
+            ",
+            [$projectId, self::PRIMARY_FILE_LIMIT]
         ));
 
         // To also get the files that are imported by the used files
@@ -61,7 +61,7 @@ class SearchVectorDBService
         $relativePaths = $relativePaths->unique()->values();
 
         if ($relativePaths->isNotEmpty()) {
-            $expansion = self::getRelativeChunks($relativePaths);
+            $expansion = self::getRelativeChunks($projectId, $relativePaths);
 
             $moreRelativePaths = collect();
 
@@ -80,7 +80,7 @@ class SearchVectorDBService
             $moreRelativePaths = $moreRelativePaths->unique()->values();
 
             if ($moreRelativePaths->isNotEmpty()) {
-                $expansion2 = self::getRelativeChunks($moreRelativePaths);
+                $expansion2 = self::getRelativeChunks($projectId, $moreRelativePaths);
                 $expansion = $expansion->merge($expansion2);
             }
 
@@ -101,8 +101,9 @@ class SearchVectorDBService
                            (metadata->>\'summary\') || \' \' ||
                            (metadata->>\'file_name\')
                        ) @@ plainto_tsquery(\'simple\', ?)
+                    AND   metadata ->> \'project_id\' = ?
                  LIMIT  ?',
-                [$prompt, $missing]
+                [$prompt, $projectId, $missing]
             ));
 
             $initial = $initial->merge($lexical);
@@ -155,7 +156,7 @@ class SearchVectorDBService
         }
     }
 
-    private static function getRelativeChunks($relativePaths): Collection
+    private static function getRelativeChunks($projectId, $relativePaths): Collection
     {
         $pairs = $relativePaths->map(function ($p) {
             return [
@@ -170,6 +171,7 @@ class SearchVectorDBService
         $sqlTuples = implode(',', array_fill(0, $pairs->count(), '(?, ?)'));
         $bindings = $pairs->flatten()->all();
         $bindings[] = self::EXPANSION_K;
+        $bindings[] = $projectId;
 
         return collect(DB::connection('vector')->select(
         /** @lang SQL */
@@ -180,6 +182,7 @@ class SearchVectorDBService
          FROM   kb_chunks
          WHERE  (metadata->>'repo_path', metadata->>'file_name')
                 IN ($sqlTuples)
+                AND metadata ->> 'project_id' = ?
          LIMIT  ?",
             $bindings
         ));

@@ -3,8 +3,10 @@
 namespace App\Jobs\Ideating;
 
 use App\Enums\ProjectStageEnum;
+use App\Enums\PrototypeTypeEnum;
 use App\Enums\StatusEnum;
 use App\Jobs\Prototypes\GeneratePrototype;
+use App\Jobs\Prototypes\GeneratePullRequest;
 use App\Models\Project;
 use App\Models\ProjectIdea;
 use Illuminate\Bus\Queueable;
@@ -64,9 +66,14 @@ class CreatePrototypeRequestsFromIdeasJob implements ShouldQueue
                 'description' => $idea->description,
                 'status' => StatusEnum::QUEUED->value,
                 'uuid' => (string)Str::uuid(),
+                'type' => $project->github_repository_id ? PrototypeTypeEnum::PULL_REQUEST->value : PrototypeTypeEnum::DEMO->value,
             ]);
 
-            GeneratePrototype::dispatch($prototype);
+            if ($project->github_repository_id) {
+                GeneratePullRequest::dispatch($prototype);
+            } else {
+                GeneratePrototype::dispatch($prototype);
+            }
         }
 
         $project->update([

@@ -24,6 +24,7 @@ class Prototype extends Model
     protected $table = 'prototypes';
 
     protected $fillable = [
+        'type',
         'user_id',
         'project_idea_id',
         'uuid',

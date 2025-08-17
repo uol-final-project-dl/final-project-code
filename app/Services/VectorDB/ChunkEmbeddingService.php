@@ -35,7 +35,7 @@ class ChunkEmbeddingService
 
         // I prepent a line with the filename and path on the content
         // (as a comment that works for most languages) just to help the LLM
-        $contentWithHeader = "/* Filename: {$codeFile->path}/{$codeFile->name} */\n\n" . $codeFile->content;
+        $contentWithHeader = "/* Filename: {$codeFile->name} */\n\n" . $codeFile->content;
 
         $chunks->push(new VectorChunk(
             id: "$codeFile->id",

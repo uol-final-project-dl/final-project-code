@@ -6,7 +6,6 @@ use App\Services\LLM\LLMCompletionService;
 use App\Services\VectorDB\SearchVectorDBService;
 use App\Traits\HasMakeAble;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 
 class CodeGenerationWithContextService
 {
@@ -23,12 +22,12 @@ class CodeGenerationWithContextService
                 $number = $idx + 1;
 
                 return "### Chunk[{$number}] {$path}\n"
-                    . "```text\n{$chunk->content}\n```";
+                    . "```code\n{$chunk->content}\n```";
             })
             ->implode("\n\n");
 
         $system = <<<SYS
-        You are an expert full-stack engineer.
+        You are an expert full-stack engineer that can generate code based on a user prompt and a set of context files.
         Respond **only** with a JSON array. Each element:
         {
           "repo_path": "<relative/path/to/file>",
@@ -38,7 +37,7 @@ class CodeGenerationWithContextService
 
         Rules:
         - Do not add explanations or markdown outside the JSON.
-        - Each file must be a complete file, not just a diff.
+        - Each file must be a complete file, not just the diff.
         - Each file must be a valid code file, ready to be used in the repository.
         - Use the context provided to understand the existing code.
         - If you lack necessary context, respond instead with:
@@ -46,11 +45,11 @@ class CodeGenerationWithContextService
         SYS;
 
         $user = <<<USR
-        CONTEXT:
-        {$context}
-
         CODING REQUEST:
         {$userPrompt}
+
+        CONTEXT FILES (read-only):
+        {$context}
         USR;
 
         return [
@@ -63,27 +62,17 @@ class CodeGenerationWithContextService
      * @throws \JsonException
      * @throws \Exception
      */
-    public function generateCode(string $provider, string $userPrompt): array
+    public function generateCode(int $projectId, string $provider, string $userPrompt): string
     {
-        $chunks = SearchVectorDBService::searchFileChunks($userPrompt);
+        $chunks = SearchVectorDBService::searchFileChunks($projectId, $userPrompt);
 
         $messages = $this->buildMessages($userPrompt, $chunks);
 
-        $resp = LLMCompletionService::chat($provider, [
+        return LLMCompletionService::chat($provider, [
             'model' => 'coding',
-            'temperature' => 0.2,
+            'temperature' => 0.3,
             'messages' => $messages,
             'max_tokens' => 16000,
         ]);
-
-        $content = $resp['choices'][0]['message']['content'] ?? '';
-
-        Log::info('LLM usage', $resp['usage'] ?? []);
-
-        return [
-            'answer' => $content,
-            'sources' => $chunks,
-            'usage' => $resp['usage'] ?? null,
-        ];
     }
 }

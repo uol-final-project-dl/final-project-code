@@ -11,6 +11,7 @@ use App\Http\Resources\ProjectResource;
 use App\Jobs\Brainstorming\CreateIdeasFromProjectDocumentsJob;
 use App\Jobs\Brainstorming\ProcessProjectDocumentsJob;
 use App\Jobs\Ideating\CreatePrototypeRequestsFromIdeasJob;
+use App\Jobs\Ideating\CreatePullRequestsFromIdeasJob;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectServices\ProjectDocumentService;
@@ -136,6 +137,7 @@ class SingleProjectController extends Controller
                     $idea = $project->project_ideas()->find($ideaId);
                     $idea?->update(['status' => StatusEnum::READY->value]);
                 }
+
                 CreatePrototypeRequestsFromIdeasJob::dispatch($project);
                 break;
             default:

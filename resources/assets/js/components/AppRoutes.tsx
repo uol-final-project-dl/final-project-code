@@ -9,9 +9,21 @@ import Projects from "./pages/Projects/Projects";
 import ProjectForm from "./pages/Projects/ProjectForm";
 import SingleProject from "./pages/SingleProject/SingleProject";
 import Settings from "./pages/Settings/Settings";
+import {useSelector} from "react-redux";
 
 export default function AppRoutes() {
     const mainSectionContainerRef = useRef<HTMLDivElement>(null)
+    const pusher = useSelector((state: { generals: { pusher: any } }) => state.generals.pusher);
+    const userId = useSelector((state: { generals: { userId: any } }) => state.generals.userId);
+
+    React.useEffect(() => {
+        if (pusher && userId) {
+            const channel = pusher.subscribe('private-user-channel-' + userId);
+            channel.bind('reload-event', function () {
+                window.location.reload();
+            });
+        }
+    }, [pusher, userId]);
 
     return (
         <>

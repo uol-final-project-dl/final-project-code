@@ -9,6 +9,8 @@ use App\Models\Project;
 use App\Models\ProjectDocument;
 use App\Services\IdeaGeneration\IdeaGenerationFromRepoService;
 use App\Services\IdeaGeneration\IdeaGenerationService;
+use App\Services\WebSocket\NotifyService;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -31,6 +33,7 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
     /**
      * @throws \JsonException
      * @throws \Exception
+     * @throws GuzzleException
      */
     public function handle(): void
     {
@@ -112,6 +115,8 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
             'stage' => ProjectStageEnum::IDEATING->value,
             'status' => StatusEnum::REQUEST_DATA->value
         ]);
+
+        NotifyService::reloadUserPage($this->project->user_id);
     }
 
 }

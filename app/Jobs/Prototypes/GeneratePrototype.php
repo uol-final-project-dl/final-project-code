@@ -5,6 +5,8 @@ namespace App\Jobs\Prototypes;
 use App\Enums\StatusEnum;
 use App\Models\Prototype;
 use App\Services\CodeGeneration\PrototypeGenerationWithContextService;
+use App\Services\WebSocket\NotifyService;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Process\ProcessResult;
@@ -14,6 +16,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
+use Pusher\ApiErrorException;
+use Pusher\PusherException;
 
 class GeneratePrototype implements ShouldQueue
 {
@@ -39,6 +43,12 @@ class GeneratePrototype implements ShouldQueue
         $this->remixDescription = $remixDescriptionConstruct ?? null;
     }
 
+    /**
+     * @throws PusherException
+     * @throws ApiErrorException
+     * @throws GuzzleException
+     * @throws BindingResolutionException
+     */
     public function handle(): void
     {
         $uuid = $this->prototype->uuid;
@@ -82,6 +92,7 @@ class GeneratePrototype implements ShouldQueue
                         'status' => StatusEnum::FAILED->value,
                         'log' => $newResult->errorOutput(),
                     ]);
+                    NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
                     return;
                 }
             } else {
@@ -89,6 +100,7 @@ class GeneratePrototype implements ShouldQueue
                     'status' => StatusEnum::FAILED->value,
                     'log' => $result->errorOutput(),
                 ]);
+                NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
                 return;
             }
         }
@@ -105,6 +117,8 @@ class GeneratePrototype implements ShouldQueue
             'bundle' => $path,
             'log' => $result->output(),
         ]);
+
+        NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
     }
 
     private function generateWithLLM(string $prompt): string

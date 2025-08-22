@@ -9,12 +9,17 @@ use App\Jobs\Prototypes\GeneratePrototype;
 use App\Jobs\Prototypes\GeneratePullRequest;
 use App\Models\Project;
 use App\Models\ProjectIdea;
+use App\Services\WebSocket\NotifyService;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
+use Pusher\ApiErrorException;
+use Pusher\PusherException;
 
 class CreatePrototypeRequestsFromIdeasJob implements ShouldQueue
 {
@@ -31,6 +36,12 @@ class CreatePrototypeRequestsFromIdeasJob implements ShouldQueue
         $this->project = $project;
     }
 
+    /**
+     * @throws PusherException
+     * @throws BindingResolutionException
+     * @throws ApiErrorException
+     * @throws GuzzleException
+     */
     public function handle(): void
     {
         $project = Project::safeInstance($this->project);
@@ -80,6 +91,8 @@ class CreatePrototypeRequestsFromIdeasJob implements ShouldQueue
             'stage' => ProjectStageEnum::PROTOTYPING->value,
             'status' => StatusEnum::QUEUED->value
         ]);
+
+        NotifyService::reloadUserPage($project->user_id);
     }
 
 }

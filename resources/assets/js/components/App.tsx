@@ -7,7 +7,6 @@ import {Provider, useDispatch, useSelector} from 'react-redux'
 import {createRoot} from "react-dom/client"
 import {Spin} from "antd";
 import {BrowserRouter} from "react-router-dom";
-import PusherHelper from "../helpers/PusherHelper";
 import AppRoutes from "./AppRoutes";
 import Login from "./auth/Login/Login";
 
@@ -25,15 +24,8 @@ function App() {
 
     useEffect(() => {
         savePageRedirect()
-        const setupPusher = async () => {
-            const pusher = await PusherHelper.initPusher();
-            dispatch({type: 'SET_PUSHER_INSTANCE', payload: pusher});
-        };
-
-        setupPusher().then(() => {
-            dispatch({type: 'FETCH_AUTH_STATUS'});
-            dispatch({type: 'DATA_FETCH_REQUESTED'});
-        });
+        dispatch({type: 'FETCH_AUTH_STATUS'});
+        dispatch({type: 'DATA_FETCH_REQUESTED'});
     }, [])
 
     if (loading) {

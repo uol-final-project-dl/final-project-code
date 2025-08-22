@@ -6,6 +6,7 @@ use App\Enums\StatusEnum;
 use App\Models\Prototype;
 use App\Services\CodeGeneration\CodeGenerationWithContextService;
 use App\Services\Github\GithubRepositoriesService;
+use App\Services\WebSocket\NotifyService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -33,7 +34,12 @@ class GeneratePullRequest implements ShouldQueue
     }
 
     /**
+     * @return void
+     * @throws BindingResolutionException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \JsonException
+     * @throws \Pusher\ApiErrorException
+     * @throws \Pusher\PusherException
      */
     public function handle(): void
     {
@@ -47,6 +53,7 @@ class GeneratePullRequest implements ShouldQueue
                 'status' => StatusEnum::FAILED->value,
                 'log' => 'LLM requires additional files to generate the code.',
             ]);
+            NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
             return;
         }
 
@@ -57,6 +64,7 @@ class GeneratePullRequest implements ShouldQueue
                 'status' => StatusEnum::FAILED->value,
                 'log' => 'LLM did not return any code files.',
             ]);
+            NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
             return;
         }
 
@@ -96,6 +104,8 @@ class GeneratePullRequest implements ShouldQueue
         $this->prototype->update([
             'status' => StatusEnum::READY->value,
         ]);
+
+        NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
     }
 
     /**

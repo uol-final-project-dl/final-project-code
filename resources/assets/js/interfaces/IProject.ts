@@ -12,6 +12,7 @@ export interface IProjectIdea {
 export interface IPrototype {
     id: number
     status: string
+    uuid: string
     created_at: string
     updated_at: string
 }
@@ -32,6 +33,7 @@ export default interface IProject {
     status: string;
     project_ideas: IProjectIdea[];
     project_documents: IProjectDocument[];
+    github_repository_id: number | null;
     created_at: string;
     updated_at: string;
 }

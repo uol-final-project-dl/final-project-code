@@ -185,4 +185,15 @@ class GithubRepositoriesService
             ]
         );
     }
+
+    public static function getRepositoryUrlToBranchDiff(string|int $repositoryId, string $branchName): string|null
+    {
+        [$owner, $name, $ref] = self::getRepoInfo($repositoryId);
+
+        if (empty($owner) || empty($name) || empty($ref)) {
+            return null;
+        }
+
+        return "https://github.com/$owner/$name/compare/$ref...$branchName";
+    }
 }

@@ -15,6 +15,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property mixed $description
  * @property mixed $user_id
  * @property mixed $style_config
+ * @property mixed $github_repository_id
  * @method relationLoaded(string $string)
  * @method load(string $string)
  */
@@ -41,6 +42,7 @@ class ProjectResource extends JsonResource
             'user_id' => $this->user_id,
             'project_documents' => ProjectDocumentResource::collection($this->whenLoaded('project_documents')),
             'project_ideas' => ProjectIdeaResource::collection($this->whenLoaded('project_ideas')),
+            'github_repository_id' => $this->github_repository_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

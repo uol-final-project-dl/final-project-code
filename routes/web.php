@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Projects\ProjectsController;
 use App\Http\Controllers\Projects\SingleProjectController;
+use App\Http\Controllers\Prototypes\OpenBranchController;
 use App\Http\Controllers\Prototypes\RemixPrototypeController;
 use App\Http\Controllers\Prototypes\RetryFailedPrototypeController;
 use App\Http\Controllers\Prototypes\ViewPrototypeController;
@@ -67,6 +68,10 @@ Route::middleware([$authMiddleware])->group(function () {
         ->where('file', '.*');
 
     Route::get('/prototype/{prototype}', [ViewPrototypeController::class, 'viewPrototype']);
+});
+
+Route::middleware([$authMiddleware])->group(function () {
+    Route::get('/branch/{prototype}', [OpenBranchController::class, 'redirectToBranch']);
 });
 
 

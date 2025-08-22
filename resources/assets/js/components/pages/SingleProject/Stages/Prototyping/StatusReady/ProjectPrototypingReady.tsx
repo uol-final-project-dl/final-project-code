@@ -1,6 +1,6 @@
 import React from 'react';
 import {Button, Form, Input, Modal, Spin, Table} from "antd";
-import IProject from "../../../../../../interfaces/IProject";
+import IProject, {IPrototype} from "../../../../../../interfaces/IProject";
 import {getStatusLabel, StatusEnum} from "../../../../../../enums/StatusEnum";
 import axios from "axios";
 import {useDispatch} from "react-redux";
@@ -10,6 +10,7 @@ interface IPrototypeForTable {
     name: string;
     description: string;
     status: string;
+    uuid: string;
     created_at: string;
 }
 
@@ -28,6 +29,7 @@ export default function ProjectPrototypingReady({project}: { project: IProject }
                     name: idea.title,
                     description: idea.description,
                     status: getStatusLabel(prototype.status as StatusEnum),
+                    uuid: prototype.uuid,
                     created_at: prototype.created_at
                 });
             })
@@ -83,74 +85,92 @@ export default function ProjectPrototypingReady({project}: { project: IProject }
                               render={(text: string) => new Date(text).toLocaleDateString()}/>
                 <Table.Column title="Status" dataIndex="status" key="status"/>
                 <Table.Column title="Actions" key="actions"
-                              render={(_text: string, record: IProject) => (
-                                  <span>
-                                      {record.status === getStatusLabel(StatusEnum.READY) ?
-                                          <div>
-                                              <Button
-                                                  type={'default'}
-                                                  className={'me-2'}
-                                                  target={'_blank'}
-                                                  href={'/prototype/' + record.id}
-                                              >
-                                                  View
-                                              </Button>
-
-                                              <Button
-                                                  type={'default'}
-                                                  className={'me-2'}
-                                                  onClick={() => {
-                                                      setOpenRemixModalPrototypeId(record.id);
-                                                      setCurrentRemixDescription('');
-                                                  }}
-                                              >
-                                                  Remix
-                                              </Button>
-
-                                              <Modal
-                                                  open={openRemixModalPrototypeId === record.id}
-                                                  onCancel={() => {
-                                                      setOpenRemixModalPrototypeId(null)
-                                                      setCurrentRemixDescription('');
-                                                  }}
-                                                  okButtonProps={{hidden: true}}
-                                                  cancelButtonProps={{hidden: true}}
-                                                  title={'Remix Prototype'}
-                                              >
+                              render={(_text: string, record: IPrototype) => (
+                                  <div>
+                                      {project.github_repository_id ? <div>
+                                              {record.status === getStatusLabel(StatusEnum.READY) ?
                                                   <div>
-                                                      <Form.Item>
-                                                          <Input.TextArea
-                                                              placeholder={'Remix description'}
-                                                              onChange={(e) => {
-                                                                  setCurrentRemixDescription(e.target.value);
-                                                              }}
-                                                          >
-                                                              {currentRemixDescription}
-                                                          </Input.TextArea>
-                                                      </Form.Item>
                                                       <Button
-                                                          type={'primary'}
-                                                          onClick={() => {
-                                                              submitRemix();
-                                                          }}
+                                                          type={'default'}
+                                                          className={'me-2'}
+                                                          target={'_blank'}
+                                                          href={'/branch/' + record.id}
                                                       >
-                                                          Submit Remix
+                                                          Open Branch
                                                       </Button>
                                                   </div>
-                                              </Modal>
+                                                  : null}
                                           </div>
-                                          : null}
-                                      {record.status === getStatusLabel(StatusEnum.FAILED) ?
-                                          <Button
-                                              variant={'filled'}
-                                              color={'danger'}
-                                              onClick={() => retryPrototype(record.id)}
-                                          >
-                                              Retry
-                                          </Button>
-                                          : null
+                                          :
+                                          <div>
+                                              {record.status === getStatusLabel(StatusEnum.READY) ?
+                                                  <div>
+                                                      <Button
+                                                          type={'default'}
+                                                          className={'me-2'}
+                                                          target={'_blank'}
+                                                          href={'/prototype/' + record.id}
+                                                      >
+                                                          View
+                                                      </Button>
+
+                                                      <Button
+                                                          type={'default'}
+                                                          className={'me-2'}
+                                                          onClick={() => {
+                                                              setOpenRemixModalPrototypeId(record.id);
+                                                              setCurrentRemixDescription('');
+                                                          }}
+                                                      >
+                                                          Remix
+                                                      </Button>
+
+                                                      <Modal
+                                                          open={openRemixModalPrototypeId === record.id}
+                                                          onCancel={() => {
+                                                              setOpenRemixModalPrototypeId(null)
+                                                              setCurrentRemixDescription('');
+                                                          }}
+                                                          okButtonProps={{hidden: true}}
+                                                          cancelButtonProps={{hidden: true}}
+                                                          title={'Remix Prototype'}
+                                                      >
+                                                          <div>
+                                                              <Form.Item>
+                                                                  <Input.TextArea
+                                                                      placeholder={'Remix description'}
+                                                                      onChange={(e) => {
+                                                                          setCurrentRemixDescription(e.target.value);
+                                                                      }}
+                                                                  >
+                                                                      {currentRemixDescription}
+                                                                  </Input.TextArea>
+                                                              </Form.Item>
+                                                              <Button
+                                                                  type={'primary'}
+                                                                  onClick={() => {
+                                                                      submitRemix();
+                                                                  }}
+                                                              >
+                                                                  Submit Remix
+                                                              </Button>
+                                                          </div>
+                                                      </Modal>
+                                                  </div>
+                                                  : null}
+                                              {record.status === getStatusLabel(StatusEnum.FAILED) ?
+                                                  <Button
+                                                      variant={'filled'}
+                                                      color={'danger'}
+                                                      onClick={() => retryPrototype(record.id)}
+                                                  >
+                                                      Retry
+                                                  </Button>
+                                                  : null
+                                              }
+                                          </div>
                                       }
-                              </span>
+                                  </div>
                               )}/>
 
             </Table>

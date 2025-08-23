@@ -22,7 +22,7 @@ class AnthropicCompletionService
             ])->post('https://api.anthropic.com/v1/messages', $config);
 
         $data = $response->json();
-        
+
         return $data['content'][0]['text'] ?? '';
 
     }

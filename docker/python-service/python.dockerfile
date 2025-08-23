@@ -11,13 +11,18 @@ RUN pip install --no-cache-dir \
       pillow \
       torch
 
-# Small init
+# Install colorthief
+RUN pip install --no-cache-dir colorthief
+
 RUN pip install --no-cache-dir dumb-init
 
 WORKDIR /app
 
 COPY scripts/caption.py /app/caption.py
+COPY scripts/colors.py /app/colors.py
+
 RUN chmod +x /app/caption.py
+RUN chmod +x /app/colors.py
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["sleep", "infinity"]

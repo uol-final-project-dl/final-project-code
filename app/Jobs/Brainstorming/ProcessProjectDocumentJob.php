@@ -5,7 +5,7 @@ namespace App\Jobs\Brainstorming;
 use App\Enums\StatusEnum;
 use App\Models\ProjectDocument;
 use App\Services\FFMPEG\FFMPEGService;
-use App\Services\PythonServices\ImageCaptionService;
+use App\Services\PythonServices\ColorsService;
 use App\Services\Whisper\WhisperService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -170,11 +170,18 @@ class ProcessProjectDocumentJob implements ShouldQueue
         ]);
     }
 
+    /**
+     * @throws \JsonException
+     */
     private function processImage($contents): void
     {
         $tmpFilePath = storage_path('app/tmp/' . Str::uuid() . '_project_document_' . $this->projectDocument->id . '.image');
         file_put_contents($tmpFilePath, $contents);
-        $caption = ImageCaptionService::caption($tmpFilePath);
+        $project = $this->projectDocument->project;
+
+
+        // Experimenting with captioning disabled for now
+        /*$caption = ImageCaptionService::caption($tmpFilePath);
 
         if ($caption) {
             $this->projectDocument->update([
@@ -182,12 +189,29 @@ class ProcessProjectDocumentJob implements ShouldQueue
                 'status' => StatusEnum::READY->value,
                 'error_message' => null,
             ]);
+        }*/
+
+        // Experiment to extract colors
+        $colors = ColorsService::extractColors($tmpFilePath);
+
+        if ($colors) {
+            $oldStyleConfig = $project->style_config ?? '';
+            $project->update([
+                'style_config' => $oldStyleConfig . "\n\nColor palette: " . $colors
+            ]);
+            $this->projectDocument->update([
+                'content' => 'Extracted color palette: ' . $colors,
+                'status' => StatusEnum::READY->value,
+                'error_message' => null,
+            ]);
+            unlink($tmpFilePath);
             return;
         }
 
+        unlink($tmpFilePath);
         $this->projectDocument->update([
             'status' => StatusEnum::FAILED->value,
-            'error_message' => 'Captioning failed',
+            'error_message' => 'Image processing failed',
         ]);
     }
 

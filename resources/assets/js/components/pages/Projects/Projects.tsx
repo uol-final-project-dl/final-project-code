@@ -53,8 +53,16 @@ export default function Projects() {
                                   <Button
                                       variant={'filled'}
                                       color={'danger'}
-                                      onClick={() => confirm('Are you sure you want to delete this project?') && axios.delete(`/api/project/${record.id}`)}
-                                  >
+                                      onClick={() => {
+                                          let confirmed = confirm('Are you sure you want to delete this project?')
+                                          if (confirmed) {
+                                              axios.delete(`/api/project/${record.id}`)
+                                                  .then(() => {
+                                                      window.location.reload();
+                                                  });
+                                          }
+                                      }
+                                      }>
                                       Delete
                                   </Button>
                               </span>

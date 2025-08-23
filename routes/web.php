@@ -53,6 +53,7 @@ Route::group(['prefix' => 'api', 'as' => 'api.'], static function () use ($authM
 
         // SINGLE PROJECT
         Route::get('/project/{id}', [SingleProjectController::class, 'getProject']);
+        Route::delete('/project/{id}', [SingleProjectController::class, 'deleteProject']);
         Route::post('/project/{id}/update-stage', [SingleProjectController::class, 'updateProjectStage']);
         Route::post('/project/{id}/update-status', [SingleProjectController::class, 'updateProjectStatus']);
 

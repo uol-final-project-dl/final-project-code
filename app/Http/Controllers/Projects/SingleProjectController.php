@@ -144,5 +144,16 @@ class SingleProjectController extends Controller
                 break;
         }
     }
+
+    public function deleteProject(string $id): array
+    {
+        $user = User::safeInstance(auth()->user());
+        $project = $user->projects()->where('id', $id)->firstOrFail();
+        $project->delete();
+
+        return [
+            'result' => 1,
+        ];
+    }
 }
 

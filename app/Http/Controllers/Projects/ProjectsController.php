@@ -17,7 +17,7 @@ class ProjectsController extends Controller
         $user = User::safeInstance(auth()->user());
 
         return [
-            'projects' => $user->projects()->get(),
+            'projects' => $user->projects()->orderBy('created_at', 'desc')->get(),
             'result' => 1,
         ];
     }

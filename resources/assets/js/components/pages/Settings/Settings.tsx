@@ -1,6 +1,6 @@
 import React from 'react';
 import './styles.less';
-import {Button, Form, Radio} from "antd";
+import {Button, Divider, Form, Radio} from "antd";
 import {useDispatch, useSelector} from "react-redux";
 import axios from 'axios';
 
@@ -33,6 +33,9 @@ export default function Settings() {
                         name="provider"
                     >
                         <Radio.Group>
+                            <Divider className={'mt-3 mb-2'}>
+                                Provider Hosted Models
+                            </Divider>
                             <br/>
                             <Radio value="openai">OpenAI (Ideation: gpt-4o-mini & Coding: gpt-4.1)</Radio>
                             <br/>
@@ -40,6 +43,30 @@ export default function Settings() {
                                 4)</Radio>
                             <br/>
                             <Radio value="google">Google (Ideation: Gemini 2.5 Flash & Coding: Gemini 2.5 Pro)</Radio>
+                            <br/>
+                            <Divider className={'mt-3 mb-2'}>
+                                Open Source Models (Self-hosted)
+                            </Divider>
+                            <Radio value="llama-local">LLama 3.1 (Ideation & Coding:
+                                llama3.1:8b-instruct-q4_K_M)</Radio>
+                            <br/>
+                            <Radio value="qwen-local">Qwen 2.5 (Ideation: qwen2.5:7b-instruct-q4_K_M & Coding:
+                                qwen2.5-coder:7b-instruct-q4_K_M )</Radio>
+                            <br/>
+                            <Radio value="deepseek-local">Deepseek (Ideation: deepseek-v2:16b-lite-chat-q4_K_M & Coding:
+                                deepseek-coder-v2:16b-lite-instruct-q4_K_M)</Radio>
+                            <br/>
+                            <Divider className={'mt-3 mb-2'}>
+                                Open Source Models (API hosted by Fireworks AI)
+                            </Divider>
+                            <Radio value="llama">LLama 3.1 (Ideation & Coding: llama-v3p1-405b-instruct)</Radio>
+                            <br/>
+                            <Radio value="qwen">Qwen 3 (Ideation: qwen3-235b-a22b-instruct-2507 & Coding:
+                                qwen3-coder-480b-a35b-instruct)</Radio>
+                            <br/>
+                            <Radio value="deepseek">Deepseek 3.1 (Ideation & Coding:
+                                deepseek-v3p1)</Radio>
+                            <br/>
                         </Radio.Group>
                     </Form.Item>
 

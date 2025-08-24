@@ -3,11 +3,17 @@
 namespace App\Services\LLM;
 
 use App\Services\Anthropic\AnthropicCompletionService;
+use App\Services\Fireworks\FireworksService;
 use App\Services\Google\GoogleCompletionService;
+use App\Services\Ollama\OllamaService;
 use App\Services\OpenAI\OpenAICompletionsService;
+use Illuminate\Http\Client\ConnectionException;
 
 class LLMCompletionService
 {
+    /**
+     * @throws ConnectionException
+     */
     public static function chat(string $provider, array $config): string
     {
         switch ($provider) {
@@ -50,6 +56,24 @@ class LLMCompletionService
                         //'maxOutputTokens' => $config['max_tokens'] ?? 3000,
                     ],
                 ]);
+            case 'llama-local':
+            case 'qwen-local':
+            case 'deepseek-local':
+                return OllamaService::chat([
+                    'model' => self::translateModelFromProvider($provider, $config['model']),
+                    'messages' => $config['messages'],
+                    'temperature' => $config['temperature'] ?? 0.7
+                ]);
+            case 'llama':
+            case 'qwen':
+            case 'deepseek':
+                return FireworksService::chat(
+                    [
+                        'model' => self::translateModelFromProvider($provider, $config['model']),
+                        'messages' => $config['messages'],
+                        'temperature' => $config['temperature'] ?? 0.7,
+                        'max_completion_tokens' => $config['max_tokens'] ?? 3000,
+                    ]);
             default:
                 throw new \InvalidArgumentException("Unsupported provider: {$provider}");
         }
@@ -69,6 +93,30 @@ class LLMCompletionService
             'google' => match ($model) {
                 'coding' => 'gemini-2.5-pro',
                 default => 'gemini-2.5-flash',
+            },
+            'llama-local' => match ($model) {
+                'coding' => 'llama3.1:8b-instruct-q4_K_M',
+                default => 'llama3.1:8b-instruct-q4_K_M',
+            },
+            'qwen-local' => match ($model) {
+                'coding' => 'qwen2.5-coder:7b-instruct-q4_K_M',
+                default => 'qwen2.5:7b-instruct-q4_K_M',
+            },
+            'deepseek-local' => match ($model) {
+                'coding' => 'deepseek-coder-v2:16b-lite-instruct-q4_K_M',
+                default => 'deepseek-v2:16b-lite-chat-q4_K_M',
+            },
+            'llama' => match ($model) {
+                'coding' => 'accounts/fireworks/models/llama-v3p1-405b-instruct',
+                default => 'accounts/fireworks/models/llama-v3p1-405b-instruct',
+            },
+            'qwen' => match ($model) {
+                'coding' => 'accounts/fireworks/models/qwen3-coder-480b-a35b-instruct',
+                default => 'accounts/fireworks/models/qwen3-235b-a22b-instruct-2507',
+            },
+            'deepseek' => match ($model) {
+                'coding' => 'accounts/fireworks/models/deepseek-v3p1',
+                default => 'accounts/fireworks/models/deepseek-v3p1',
             },
             default => throw new \InvalidArgumentException("Unsupported provider: {$provider}"),
         };

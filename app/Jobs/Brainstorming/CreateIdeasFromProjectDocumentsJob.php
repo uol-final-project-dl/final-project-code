@@ -21,6 +21,8 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $timeout = 20000;
+
     private Project $project;
 
     public function __construct(

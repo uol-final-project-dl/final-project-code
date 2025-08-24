@@ -138,6 +138,7 @@ services:
         volumes:
             - .:/var/www/html
             - /var/run/docker.sock:/var/run/docker.sock
+            - huggingface_cache:/root/.cache/huggingface
         networks:
             - uol-network
 
@@ -146,3 +147,4 @@ volumes:
     mysql_data_uol:
     storage-minio-uol:
     vector_data_uol:
+    huggingface_cache:

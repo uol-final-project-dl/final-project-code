@@ -24,5 +24,14 @@ COPY scripts/colors.py /app/colors.py
 RUN chmod +x /app/caption.py
 RUN chmod +x /app/colors.py
 
+# Downloading BLIP2 model weights
+#RUN python3 -c "from transformers import Blip2Processor, Blip2ForConditionalGeneration; \
+#    Blip2Processor.from_pretrained('Salesforce/blip2-flan-t5-xxl'); \
+#    Blip2ForConditionalGeneration.from_pretrained('Salesforce/blip2-flan-t5-xxl')"
+
+#RUN python3 -c "from transformers import Blip2Processor, Blip2ForConditionalGeneration; \
+#    Blip2Processor.from_pretrained('Salesforce/blip2-opt-2.7b'); \
+#    Blip2ForConditionalGeneration.from_pretrained('Salesforce/blip2-opt-2.7b')"
+
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["sleep", "infinity"]

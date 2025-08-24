@@ -64,7 +64,7 @@ const Layout = ({selectedKey, title, children}: IProps) => {
             >
                 <div className={'layout-sider-logo'}>
                     <div>
-                        MY LOGO
+
                     </div>
                 </div>
                 <Menu

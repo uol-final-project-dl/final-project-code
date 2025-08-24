@@ -21,7 +21,7 @@ class ProcessProjectDocumentJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $timeout = 600;
+    public int $timeout = 20000;
 
     private ProjectDocument $projectDocument;
 
@@ -181,8 +181,8 @@ class ProcessProjectDocumentJob implements ShouldQueue
 
 
         // Experimenting with captioning disabled for now
+        $caption = null;
         /*$caption = ImageCaptionService::caption($tmpFilePath);
-
         if ($caption) {
             $this->projectDocument->update([
                 'content' => $caption,
@@ -190,6 +190,8 @@ class ProcessProjectDocumentJob implements ShouldQueue
                 'error_message' => null,
             ]);
         }*/
+
+        $this->projectDocument->refresh();
 
         // Experiment to extract colors
         $colors = ColorsService::extractColors($tmpFilePath);
@@ -199,11 +201,14 @@ class ProcessProjectDocumentJob implements ShouldQueue
             $project->update([
                 'style_config' => $oldStyleConfig . "\n\nColor palette: " . $colors
             ]);
+
             $this->projectDocument->update([
-                'content' => 'Extracted color palette: ' . $colors,
                 'status' => StatusEnum::READY->value,
                 'error_message' => null,
             ]);
+        }
+
+        if ($caption || $colors) {
             unlink($tmpFilePath);
             return;
         }

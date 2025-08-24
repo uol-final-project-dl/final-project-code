@@ -1,4 +1,5 @@
 import sys
+import requests
 from PIL import Image
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
 
@@ -8,12 +9,13 @@ def main():
         sys.exit(1)
 
     path = sys.argv[1]
-    processor = Blip2Processor.from_pretrained("Salesforce/blip2-flan-t5-xxl")
-    model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-flan-t5-xxl")
+    processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
+    model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b")
 
-    img = Image.open(path).convert("RGB")
-    inputs = processor(images=img, return_tensors="pt")
-    out = model.generate(**inputs, max_new_tokens=128)
+    raw_image = Image.open(path).convert("RGB")
+    question = 'Convert this image to HTML'
+    inputs = processor(raw_image,question, return_tensors="pt")
+    out = model.generate(**inputs)
 
     caption = processor.decode(out[0], skip_special_tokens=True)
     print(caption)

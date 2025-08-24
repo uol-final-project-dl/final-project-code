@@ -17,12 +17,13 @@ class ImageCaptionService
         $cmd = [
             'docker', 'run', '--rm',
             '--volumes-from', $containerId,
+            '-v', 'huggingface_cache:/root/.cache/huggingface',
             'python-service:latest',
             'sh', '-c',
             "python3 /app/caption.py {$inContainerPath}"
         ];
 
-        $process = Process::timeout(600)->run($cmd);
+        $process = Process::timeout(20000)->run($cmd);
 
         if ($process->failed()) {
             throw new \RuntimeException("Image captioning failed: " . $process->errorOutput());

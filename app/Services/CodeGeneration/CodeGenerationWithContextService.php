@@ -2,6 +2,8 @@
 
 namespace App\Services\CodeGeneration;
 
+use App\Models\Project;
+use App\Services\FileParsing\ImageBase64Service;
 use App\Services\LLM\LLMCompletionService;
 use App\Services\VectorDB\SearchVectorDBService;
 use App\Traits\HasMakeAble;
@@ -62,17 +64,18 @@ class CodeGenerationWithContextService
      * @throws \JsonException
      * @throws \Exception
      */
-    public function generateCode(int $projectId, string $provider, string $userPrompt): string
+    public function generateCode(Project $project, string $provider, string $userPrompt): string
     {
-        $chunks = SearchVectorDBService::searchFileChunks($projectId, $userPrompt);
+        $chunks = SearchVectorDBService::searchFileChunks($project->id, $userPrompt);
 
         $messages = $this->buildMessages($userPrompt, $chunks);
+        $images = ImageBase64Service::base64DocumentsFromProject($project);
 
         return LLMCompletionService::chat($provider, [
             'model' => 'coding',
             'temperature' => 0.3,
             'messages' => $messages,
             'max_tokens' => 16000,
-        ]);
+        ], $images);
     }
 }

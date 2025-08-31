@@ -3,6 +3,7 @@
 namespace App\Services\CodeGeneration;
 
 use App\Models\Prototype;
+use App\Services\FileParsing\ImageBase64Service;
 use App\Services\LLM\LLMCompletionService;
 use App\Traits\HasMakeAble;
 
@@ -55,7 +56,7 @@ class PrototypeGenerationWithContextService
     /**
      * @throws \Exception
      */
-    public function generate(Prototype $prototype, string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null): string
+    public function generate(Prototype $prototype, string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null, bool $useImages = false): string
     {
         if ($prototype->project_idea->project->style_config) {
             $userPrompt .= "\n\n STYLE PREFERENCES: \n" . $prototype->project_idea->project->style_config . "\n";
@@ -64,14 +65,18 @@ class PrototypeGenerationWithContextService
         $messages = $this->buildMessages($userPrompt, $codeSoFar, $oldCode, $remixDescription);
         $provider = $prototype->user->provider;
 
+        if ($useImages) {
+            $images = ImageBase64Service::base64DocumentsFromProject($prototype->project_idea->project);
+        }
+
         $code = LLMCompletionService::chat($provider, [
             'model' => 'coding',
             'temperature' => 0.2,
             'messages' => $messages,
             'max_tokens' => 6000,
-        ]);
+        ], $images ?? []);
 
-        $cleanedCode = preg_replace('/```(?:json|jsx)?\n?/', '', $code);
+        $cleanedCode = preg_replace('/```(?:json|jsx|javascript)?\n?/', '', $code);
         return trim($cleanedCode, "\" \n\r\t");
     }
 }

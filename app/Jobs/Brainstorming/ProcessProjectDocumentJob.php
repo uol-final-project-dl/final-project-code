@@ -5,11 +5,13 @@ namespace App\Jobs\Brainstorming;
 use App\Enums\StatusEnum;
 use App\Models\ProjectDocument;
 use App\Services\FFMPEG\FFMPEGService;
+use App\Services\LLM\LLMVisionService;
 use App\Services\PythonServices\ColorsService;
 use App\Services\Whisper\WhisperService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
@@ -172,24 +174,24 @@ class ProcessProjectDocumentJob implements ShouldQueue
 
     /**
      * @throws \JsonException
+     * @throws ConnectionException
      */
     private function processImage($contents): void
     {
         $tmpFilePath = storage_path('app/tmp/' . Str::uuid() . '_project_document_' . $this->projectDocument->id . '.image');
         file_put_contents($tmpFilePath, $contents);
         $project = $this->projectDocument->project;
-
+        $provider = $project->user->provider;
 
         // Experimenting with captioning disabled for now
-        $caption = null;
-        /*$caption = ImageCaptionService::caption($tmpFilePath);
+        $caption = LLMVisionService::describeImage($provider, $tmpFilePath);
         if ($caption) {
             $this->projectDocument->update([
                 'content' => $caption,
                 'status' => StatusEnum::READY->value,
                 'error_message' => null,
             ]);
-        }*/
+        }
 
         $this->projectDocument->refresh();
 

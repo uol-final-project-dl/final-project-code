@@ -14,7 +14,7 @@ class LLMCompletionService
     /**
      * @throws ConnectionException
      */
-    public static function chat(string $provider, array $config): string
+    public static function chat(string $provider, array $config, array $images = []): string
     {
         switch ($provider) {
             case 'openai':
@@ -24,7 +24,7 @@ class LLMCompletionService
                         'messages' => $config['messages'],
                         'temperature' => $config['temperature'] ?? 0.7,
                         'max_completion_tokens' => $config['max_tokens'] ?? 3000,
-                    ]);
+                    ], $images);
             case 'anthropic':
                 return AnthropicCompletionService::chat([
                     'model' => self::translateModelFromProvider($provider, $config['model']),
@@ -33,7 +33,7 @@ class LLMCompletionService
                     'messages' => array_slice($config['messages'], 1),
                     'temperature' => $config['temperature'] ?? 0.7,
                     'max_tokens' => $config['max_tokens'] ?? 3000,
-                ]);
+                ], $images);
             case 'google':
                 return GoogleCompletionService::chat([
                     'model' => self::translateModelFromProvider($provider, $config['model']),
@@ -55,7 +55,7 @@ class LLMCompletionService
                         'temperature' => $config['temperature'] ?? 0.7,
                         //'maxOutputTokens' => $config['max_tokens'] ?? 3000,
                     ],
-                ]);
+                ], $images);
             case 'llama-local':
             case 'qwen-local':
             case 'deepseek-local':

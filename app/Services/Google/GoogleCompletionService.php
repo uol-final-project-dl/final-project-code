@@ -10,9 +10,28 @@ class GoogleCompletionService
     /**
      * @throws ConnectionException
      */
-    public static function chat(array $config): string
+    public static function chat(array $config, array $images = []): string
     {
         $apiKey = config('google.api_key');
+
+        if (is_array($images) && !empty($images)) {
+            foreach ($images as $image) {
+                $config['contents'][] = [
+                    'role' => 'user',
+                    'parts' => [
+                        [
+                            "text" => 'Use this screenshot as the reference structure'
+                        ],
+                        ['inline_data' =>
+                            [
+                                'mime_type' => $image['mimeType'],
+                                'data' => $image['base64']
+                            ]
+                        ]
+                    ]
+                ];
+            }
+        }
 
         $response = Http::timeout(600)
             ->withHeaders([

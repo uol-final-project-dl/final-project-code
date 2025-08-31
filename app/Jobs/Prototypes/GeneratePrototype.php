@@ -128,7 +128,7 @@ class GeneratePrototype implements ShouldQueue
             return $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt, null, $oldCode, $this->remixDescription);
         }
 
-        return $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt);
+        return $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt, null, null, null, true);
     }
 
     private function continueGeneratingWithLLM(string $prompt, string $patchFile, string $codeSoFar, string $uuid): ProcessResult

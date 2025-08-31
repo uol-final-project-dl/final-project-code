@@ -10,9 +10,31 @@ class AnthropicCompletionService
     /**
      * @throws ConnectionException
      */
-    public static function chat(array $config): string
+    public static function chat(array $config, array $images = []): string
     {
         $apiKey = config('anthropic.api_key');
+
+        if (is_array($images) && !empty($images)) {
+            foreach ($images as $image) {
+                $config['messages'][] = [
+                    'role' => 'user',
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => 'Use this screenshot as the reference structure'
+                        ],
+                        [
+                            'type' => 'image',
+                            'source' => [
+                                "type" => "base64",
+                                "media_type" => $image['mimeType'],
+                                "data" => $image['base64']
+                            ]
+                        ]
+                    ]
+                ];
+            }
+        }
 
         $response = Http::timeout(600)
             ->withHeaders([

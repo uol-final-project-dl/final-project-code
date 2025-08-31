@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $filename
  * @property int $id
  * @property string $content
+ * @property Project $project
  */
 class ProjectDocument extends Model
 {

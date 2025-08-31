@@ -113,9 +113,9 @@ class GeneratePullRequest implements ShouldQueue
      */
     private function generateWithLLM(string $prompt): string
     {
-        $projectId = $this->prototype->project_idea->project_id;
+        $project = $this->prototype->project_idea->project;
         $provider = $this->prototype->user->provider;
-        return $this->codeGenerationWithContextService->generateCode($projectId, $provider, $prompt);
+        return $this->codeGenerationWithContextService->generateCode($project, $provider, $prompt);
     }
 
 }

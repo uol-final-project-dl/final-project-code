@@ -29,18 +29,22 @@ class GeneratePrototype implements ShouldQueue
     private bool $remix;
     private string|null $remixDescription;
 
+    private bool $returnOutput;
+
     /**
      * @throws BindingResolutionException
      */
     public function __construct(
         public Prototype   $prototype,
         public bool        $remixConstruct = false,
-        public string|null $remixDescriptionConstruct = null
+        public string|null $remixDescriptionConstruct = null,
+        bool               $returnOutput = false
     )
     {
         $this->prototypeGenerationWithContextService = PrototypeGenerationWithContextService::make();
         $this->remix = $remixConstruct ?? false;
         $this->remixDescription = $remixDescriptionConstruct ?? null;
+        $this->returnOutput = $returnOutput;
     }
 
     /**
@@ -49,7 +53,7 @@ class GeneratePrototype implements ShouldQueue
      * @throws GuzzleException
      * @throws BindingResolutionException
      */
-    public function handle(): void
+    public function handle(): ?string
     {
         $uuid = $this->prototype->uuid;
         $patchFile = "jobs/$uuid/patch-App.jsx";
@@ -93,7 +97,7 @@ class GeneratePrototype implements ShouldQueue
                         'log' => $newResult->errorOutput(),
                     ]);
                     NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
-                    return;
+                    return null;
                 }
             } else {
                 $this->prototype->update([
@@ -101,7 +105,7 @@ class GeneratePrototype implements ShouldQueue
                     'log' => $result->errorOutput(),
                 ]);
                 NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
-                return;
+                return null;
             }
         }
 
@@ -119,6 +123,12 @@ class GeneratePrototype implements ShouldQueue
         ]);
 
         NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
+
+        if ($this->returnOutput) {
+            return $reactCode;
+        }
+
+        return null;
     }
 
     private function generateWithLLM(string $prompt): string

@@ -24,12 +24,15 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
     public int $timeout = 20000;
 
     private Project $project;
+    private bool $returnOutput;
 
     public function __construct(
         Project $project,
+        bool    $returnOutput = false
     )
     {
         $this->project = $project;
+        $this->returnOutput = $returnOutput;
     }
 
     /**
@@ -37,7 +40,7 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
      * @throws \Exception
      * @throws GuzzleException
      */
-    public function handle(): void
+    public function handle(): ?string
     {
         $project = Project::safeInstance($this->project);
 
@@ -98,7 +101,7 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
             $this->project->update([
                 'status' => StatusEnum::REQUEST_DATA->value
             ]);
-            return;
+            return null;
         }
 
         foreach ($ideas as $idea) {
@@ -119,6 +122,12 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
         ]);
 
         NotifyService::reloadUserPage($this->project->user_id);
+
+        if ($this->returnOutput) {
+            return $answer;
+        }
+
+        return null;
     }
 
 }

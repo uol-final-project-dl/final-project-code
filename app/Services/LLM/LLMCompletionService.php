@@ -14,69 +14,60 @@ class LLMCompletionService
     /**
      * @throws ConnectionException
      */
-    public static function chat(string $provider, array $config, array $images = []): string
+    public static function chat(string $provider, array $config, array $images = []): array
     {
-        switch ($provider) {
-            case 'openai':
-                return OpenAICompletionsService::chat(
-                    [
-                        'model' => self::translateModelFromProvider($provider, $config['model']),
-                        'messages' => $config['messages'],
-                        'temperature' => $config['temperature'] ?? 0.7,
-                        'max_completion_tokens' => $config['max_tokens'] ?? 3000,
-                    ], $images);
-            case 'anthropic':
-                return AnthropicCompletionService::chat([
-                    'model' => self::translateModelFromProvider($provider, $config['model']),
-                    'system' => $config['messages'][0]['content'] ?? '',
-                    // I pass all messages except the first one as expects the system to be set separately
-                    'messages' => array_slice($config['messages'], 1),
-                    'temperature' => $config['temperature'] ?? 0.7,
-                    'max_tokens' => $config['max_tokens'] ?? 3000,
-                ], $images);
-            case 'google':
-                return GoogleCompletionService::chat([
-                    'model' => self::translateModelFromProvider($provider, $config['model']),
-                    'system_instruction' => [
-                        "parts" =>
-                            [
-                                "text" => $config['messages'][0]['content'] ?? ''
-                            ]
-                    ],
-                    "contents" => array_map(static function ($msg) {
-                        return [
-                            'role' => $msg['role'] ?? 'user',
-                            'parts' => [
-                                ['text' => $msg['content'] ?? '']
-                            ]
-                        ];
-                    }, array_slice($config['messages'], 1)),
-                    "generationConfig" => [
-                        'temperature' => $config['temperature'] ?? 0.7,
-                        //'maxOutputTokens' => $config['max_tokens'] ?? 3000,
-                    ],
-                ], $images);
-            case 'llama-local':
-            case 'qwen-local':
-            case 'deepseek-local':
-                return OllamaService::chat([
+        return match ($provider) {
+            'openai' => OpenAICompletionsService::chat(
+                [
                     'model' => self::translateModelFromProvider($provider, $config['model']),
                     'messages' => $config['messages'],
-                    'temperature' => $config['temperature'] ?? 0.7
-                ]);
-            case 'llama':
-            case 'qwen':
-            case 'deepseek':
-                return FireworksService::chat(
-                    [
-                        'model' => self::translateModelFromProvider($provider, $config['model']),
-                        'messages' => $config['messages'],
-                        'temperature' => $config['temperature'] ?? 0.7,
-                        'max_completion_tokens' => $config['max_tokens'] ?? 3000,
-                    ]);
-            default:
-                throw new \InvalidArgumentException("Unsupported provider: {$provider}");
-        }
+                    'temperature' => $config['temperature'] ?? 0.7,
+                    'max_completion_tokens' => $config['max_tokens'] ?? 3000,
+                    'logprobs' => true,
+                ], $images),
+            'anthropic' => AnthropicCompletionService::chat([
+                'model' => self::translateModelFromProvider($provider, $config['model']),
+                'system' => $config['messages'][0]['content'] ?? '',
+                // I pass all messages except the first one as expects the system to be set separately
+                'messages' => array_slice($config['messages'], 1),
+                'temperature' => $config['temperature'] ?? 0.7,
+                'max_tokens' => $config['max_tokens'] ?? 3000,
+            ], $images),
+            'google' => GoogleCompletionService::chat([
+                'model' => self::translateModelFromProvider($provider, $config['model']),
+                'system_instruction' => [
+                    "parts" =>
+                        [
+                            "text" => $config['messages'][0]['content'] ?? ''
+                        ]
+                ],
+                "contents" => array_map(static function ($msg) {
+                    return [
+                        'role' => $msg['role'] ?? 'user',
+                        'parts' => [
+                            ['text' => $msg['content'] ?? '']
+                        ]
+                    ];
+                }, array_slice($config['messages'], 1)),
+                "generationConfig" => [
+                    'temperature' => $config['temperature'] ?? 0.7,
+                    //'maxOutputTokens' => $config['max_tokens'] ?? 3000,
+                ],
+            ], $images),
+            'llama-local', 'qwen-local', 'deepseek-local' => OllamaService::chat([
+                'model' => self::translateModelFromProvider($provider, $config['model']),
+                'messages' => $config['messages'],
+                'temperature' => $config['temperature'] ?? 0.7
+            ]),
+            'llama', 'qwen', 'deepseek' => FireworksService::chat(
+                [
+                    'model' => self::translateModelFromProvider($provider, $config['model']),
+                    'messages' => $config['messages'],
+                    'temperature' => $config['temperature'] ?? 0.7,
+                    'max_completion_tokens' => $config['max_tokens'] ?? 3000,
+                ]),
+            default => throw new \InvalidArgumentException("Unsupported provider: {$provider}"),
+        };
     }
 
     private static function translateModelFromProvider(string $provider, string $model): string

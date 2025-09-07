@@ -10,7 +10,7 @@ class FireworksService
     /**
      * @throws ConnectionException
      */
-    public static function chat(array $config): string
+    public static function chat(array $config): array
     {
         $apiKey = config("fireworks.api_key");
 
@@ -22,6 +22,6 @@ class FireworksService
 
         $data = $response->json();
 
-        return $data['choices'][0]['message']['content'] ?? '';
+        return [$data['choices'][0]['message']['content'] ?? '', []];
     }
 }

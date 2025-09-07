@@ -61,7 +61,7 @@ class LLMVisionService
                         ]
                     ],
                 ],
-            ]),
+            ])[0],
             'google' => GoogleCompletionService::chat([
                 'model' => self::translateModelFromProvider($provider),
                 "contents" => [
@@ -83,7 +83,7 @@ class LLMVisionService
                 "generationConfig" => [
                     'temperature' => $config['temperature'] ?? 0.7,
                 ],
-            ]),
+            ])[0],
             'qwen' => FireworksService::chat(
                 [
                     'model' => self::translateModelFromProvider($provider),
@@ -104,7 +104,7 @@ class LLMVisionService
                             ]
                         ],
                     ],
-                ]),
+                ])[0],
             default => OpenAICompletionsService::chat(
                 [
                     'model' => self::translateModelFromProvider($provider),
@@ -125,7 +125,7 @@ class LLMVisionService
                             ]
                         ],
                     ],
-                ]),
+                ])[0],
         };
     }
 

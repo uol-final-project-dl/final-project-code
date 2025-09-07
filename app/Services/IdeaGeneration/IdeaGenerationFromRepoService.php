@@ -60,7 +60,7 @@ class IdeaGenerationFromRepoService
     /**
      * @throws \Exception
      */
-    public static function generateIdeas(string $provider, string $transcript, string $contextFiles): string
+    public static function generateIdeas(string $provider, string $transcript, string $contextFiles): array
     {
         $messages = self::buildMessages($transcript, $contextFiles);
 

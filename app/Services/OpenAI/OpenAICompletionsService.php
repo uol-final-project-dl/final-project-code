@@ -6,7 +6,7 @@ use OpenAI\Laravel\Facades\OpenAI;
 
 class OpenAICompletionsService
 {
-    public static function chat(array $config, array $images = []): string
+    public static function chat(array $config, array $images = []): array
     {
         if (is_array($images) && !empty($images)) {
             foreach ($images as $image) {
@@ -29,6 +29,6 @@ class OpenAICompletionsService
 
         $resp = OpenAI::chat()->create($config);
 
-        return $resp['choices'][0]['message']['content'] ?? '';
+        return [$resp['choices'][0]['message']['content'] ?? '', $resp['choices'][0]['logprobs']['content'] ?? []];
     }
 }

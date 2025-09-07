@@ -64,7 +64,7 @@ class CodeGenerationWithContextService
      * @throws \JsonException
      * @throws \Exception
      */
-    public function generateCode(Project $project, string $provider, string $userPrompt): string
+    public function generateCode(Project $project, string $provider, string $userPrompt): array
     {
         $chunks = SearchVectorDBService::searchFileChunks($project->id, $userPrompt);
 

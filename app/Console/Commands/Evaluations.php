@@ -51,7 +51,7 @@ class Evaluations extends Command
     public function handle(): void
     {
         //$providers = ProviderEnum::getValues();
-        $providers = [ProviderEnum::OPENAI->value];
+        $providers = [ProviderEnum::GOOGLE->value];
         $user = User::query()->first();
         $outputPath = 'eval_dataset.jsonl';
 
@@ -101,17 +101,20 @@ class Evaluations extends Command
 
                 //Generate Ideas
                 $startIdeaTime = microtime(true);
-                $ideasString = $this->generateIdeas($project);
+                [$ideasString, $ideaLogprobs] = $this->generateIdeas($project);
                 $endIdeaTime = microtime(true);
 
                 if ($ideasString) {
                     $ideas = json_decode($ideasString, true, 512, JSON_THROW_ON_ERROR);
                     $metrics[$provider][$caseName]['idea_count'] = count($ideas);
                     $metrics[$provider][$caseName]['idea_fails'] = (count($ideas) === 0) ? 1.0 : 0.0;
+                    $metrics[$provider][$caseName]['idea_generation_time_seconds'] = round($endIdeaTime - $startIdeaTime, 2);
+                    $metrics[$provider][$caseName]['idea_perplexity'] = $this->calculatePerplexity($ideaLogprobs);
                 } else {
                     $metrics[$provider][$caseName]['idea_count'] = 0;
                     $metrics[$provider][$caseName]['idea_fails'] = 1.0;
                     $metrics[$provider][$caseName]['idea_generation_time_seconds'] = round($endIdeaTime - $startIdeaTime, 2);
+                    $metrics[$provider][$caseName]['idea_perplexity'] = 0.0;
                     continue;
                 }
 
@@ -177,15 +180,15 @@ class Evaluations extends Command
      * @throws GuzzleException
      * @throws JsonException
      */
-    private function generateIdeas(Project $project): ?string
+    private function generateIdeas(Project $project): ?array
     {
         $job = new CreateIdeasFromProjectDocumentsJob($project, true);
 
-        $ideasString = $job->handle();
+        [$ideasString, $logprobs] = $job->handle();
 
         if ($ideasString) {
             $this->info("Generated Ideas correctly.");
-            return $ideasString;
+            return [$ideasString, $logprobs];
         }
 
         $this->info("Failed generating ideas.");
@@ -224,7 +227,7 @@ class Evaluations extends Command
 
             $startPrototypeTime = microtime(true);
             $generatePrototype = new GeneratePrototype($prototype, false, null, true);
-            $outputString = $generatePrototype->handle();
+            [$outputString, $outputLogprobs] = $generatePrototype->handle();
             $endPrototypeTime = microtime(true);
 
             $metrics['prototype_generation_time_seconds'] += round($endPrototypeTime - $startPrototypeTime, 2);
@@ -237,7 +240,8 @@ class Evaluations extends Command
                 $this->info("Generated prototype for idea: " . $idea->title);
                 $outputs[] = [
                     'idea' => $idea->title . ' : ' . $idea->description,
-                    'code' => $outputString
+                    'code' => $outputString,
+                    'perplexity' => $this->calculatePerplexity($outputLogprobs)
                 ];
             }
 
@@ -270,6 +274,29 @@ class Evaluations extends Command
                 json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
             );
         }
+    }
+
+    private function calculatePerplexity(array $logprobs): float
+    {
+        // Following my source:
+        // perplexity_score = np.exp(-np.mean(logprobs))
+
+        $tokenLogprobs = array_map(fn($lp) => $lp['logprob'] ?? -9999.0, $logprobs);
+
+        $totalLogProb = 0.0;
+        $tokenCount = count($tokenLogprobs);
+
+        foreach ($tokenLogprobs as $logprob) {
+            $totalLogProb += $logprob;
+        }
+
+        if ($tokenCount === 0) {
+            return 0.0;
+        }
+
+        $avgLogProb = $totalLogProb / $tokenCount;
+
+        return exp(-$avgLogProb);
     }
 
 

@@ -56,7 +56,7 @@ class PrototypeGenerationWithContextService
     /**
      * @throws \Exception
      */
-    public function generate(Prototype $prototype, string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null, bool $useImages = false): string
+    public function generate(Prototype $prototype, string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null, bool $useImages = false): array
     {
         if ($prototype->project_idea->project->style_config) {
             $userPrompt .= "\n\n STYLE PREFERENCES: \n" . $prototype->project_idea->project->style_config . "\n";
@@ -69,7 +69,7 @@ class PrototypeGenerationWithContextService
             $images = ImageBase64Service::base64DocumentsFromProject($prototype->project_idea->project);
         }
 
-        $code = LLMCompletionService::chat($provider, [
+        [$code, $logprobs] = LLMCompletionService::chat($provider, [
             'model' => 'coding',
             'temperature' => 0.2,
             'messages' => $messages,
@@ -77,6 +77,6 @@ class PrototypeGenerationWithContextService
         ], $images ?? []);
 
         $cleanedCode = preg_replace('/```(?:json|jsx|javascript)?\n?/', '', $code);
-        return trim($cleanedCode, "\" \n\r\t");
+        return [trim($cleanedCode, "\" \n\r\t"), $logprobs];
     }
 }

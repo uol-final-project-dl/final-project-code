@@ -10,7 +10,7 @@ class AnthropicCompletionService
     /**
      * @throws ConnectionException
      */
-    public static function chat(array $config, array $images = []): string
+    public static function chat(array $config, array $images = []): array
     {
         $apiKey = config('anthropic.api_key');
 
@@ -45,7 +45,6 @@ class AnthropicCompletionService
 
         $data = $response->json();
 
-        return $data['content'][0]['text'] ?? '';
-
+        return [$data['content'][0]['text'] ?? '', []];
     }
 }

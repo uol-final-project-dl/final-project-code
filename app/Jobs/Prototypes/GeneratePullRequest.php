@@ -22,15 +22,18 @@ class GeneratePullRequest implements ShouldQueue
     public int $timeout = 600;
 
     private CodeGenerationWithContextService $codeGenerationWithContextService;
+    private bool $returnOutput;
 
     /**
      * @throws BindingResolutionException
      */
     public function __construct(
-        public Prototype $prototype
+        public Prototype $prototype,
+        bool             $returnOutput = false,
     )
     {
         $this->codeGenerationWithContextService = CodeGenerationWithContextService::make();
+        $this->returnOutput = $returnOutput;
     }
 
     /**
@@ -41,12 +44,12 @@ class GeneratePullRequest implements ShouldQueue
      * @throws \Pusher\ApiErrorException
      * @throws \Pusher\PusherException
      */
-    public function handle(): void
+    public function handle(): ?array
     {
         $prompt = $this->prototype->title . ' : ' . $this->prototype->description;
 
         // Call the LLM to generate the React code
-        $codeFiles = $this->generateWithLLM($prompt);
+        [$codeFiles, $logprobs] = $this->generateWithLLM($prompt);
 
         if (Str::contains($codeFiles, "NEED_FILE")) {
             $this->prototype->update([
@@ -54,7 +57,7 @@ class GeneratePullRequest implements ShouldQueue
                 'log' => 'LLM requires additional files to generate the code.',
             ]);
             NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
-            return;
+            return null;
         }
 
         $codeFiles = json_decode($codeFiles, true, 512, JSON_THROW_ON_ERROR);
@@ -65,7 +68,7 @@ class GeneratePullRequest implements ShouldQueue
                 'log' => 'LLM did not return any code files.',
             ]);
             NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
-            return;
+            return null;
         }
 
         GithubRepositoriesService::createBranch(
@@ -106,12 +109,18 @@ class GeneratePullRequest implements ShouldQueue
         ]);
 
         NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
+
+        if ($this->returnOutput) {
+            return [json_encode($codeFiles, JSON_THROW_ON_ERROR), $logprobs];
+        }
+
+        return null;
     }
 
     /**
      * @throws \JsonException
      */
-    private function generateWithLLM(string $prompt): string
+    private function generateWithLLM(string $prompt): array
     {
         $project = $this->prototype->project_idea->project;
         $provider = $this->prototype->user->provider;

@@ -10,7 +10,7 @@ class GoogleCompletionService
     /**
      * @throws ConnectionException
      */
-    public static function chat(array $config, array $images = []): string
+    public static function chat(array $config, array $images = []): array
     {
         $apiKey = config('google.api_key');
 
@@ -45,6 +45,19 @@ class GoogleCompletionService
 
         $data = $response->json();
 
-        return $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        return [$data['candidates'][0]['content']['parts'][0]['text'] ?? '', self::convertLogprobArrayIntoOpenAIFormat($data['candidates'][0]['logprobsResult']['chosenCandidates'] ?? [])];
+    }
+
+    private static function convertLogprobArrayIntoOpenAIFormat(array $logprobs): array
+    {
+        $result = [];
+
+        foreach ($logprobs as $item) {
+            $result[] = [
+                'logprob' => $item['logProbability'] ?? -9999.0,
+            ];
+        }
+
+        return $result;
     }
 }

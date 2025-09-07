@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class OllamaService
 {
-    public static function chat(array $config = []): string
+    public static function chat(array $config = []): array
     {
         $baseUrl = config('ollama.base_url');
         $payload = [
@@ -28,10 +28,10 @@ class OllamaService
                 ])->post("{$baseUrl}/api/chat", $payload);
 
             $data = $res->json();
-            return $data['message']['content'] ?? '';
+            return [$data['message']['content'] ?? '', []];
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            return '';
+            return ['', []];
         }
     }
 }

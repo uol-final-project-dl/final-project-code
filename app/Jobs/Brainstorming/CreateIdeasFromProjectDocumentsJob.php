@@ -40,7 +40,7 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
      * @throws \Exception
      * @throws GuzzleException
      */
-    public function handle(): ?string
+    public function handle(): ?array
     {
         $project = Project::safeInstance($this->project);
 
@@ -83,9 +83,9 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
                 $contextFiles .= "\n\n --- " . $file->path . '/' . $file->name . "--- \n" . $file->content;
             }
 
-            $answer = IdeaGenerationFromRepoService::generateIdeas($provider, $context, $contextFiles);
+            [$answer, $logprobs] = IdeaGenerationFromRepoService::generateIdeas($provider, $context, $contextFiles);
         } else {
-            $answer = IdeaGenerationService::generateIdeas($provider, $context);
+            [$answer, $logprobs] = IdeaGenerationService::generateIdeas($provider, $context);
         }
 
         $cleanedAnswer = preg_replace('/```(?:json)?\n?/', '', $answer);
@@ -124,7 +124,7 @@ class CreateIdeasFromProjectDocumentsJob implements ShouldQueue
         NotifyService::reloadUserPage($this->project->user_id);
 
         if ($this->returnOutput) {
-            return $answer;
+            return [$answer, $logprobs];
         }
 
         return null;

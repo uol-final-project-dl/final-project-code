@@ -59,7 +59,7 @@ class IdeaGenerationService
     /**
      * @throws \Exception
      */
-    public static function generateIdeas(string $provider, string $context): string
+    public static function generateIdeas(string $provider, string $context): array
     {
         $messages = self::buildMessages($context);
 

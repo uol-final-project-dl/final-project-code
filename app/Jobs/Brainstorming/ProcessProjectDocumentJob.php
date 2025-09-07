@@ -17,7 +17,6 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\PdfToText\Pdf;
-use Symfony\Component\Process\Process;
 
 class ProcessProjectDocumentJob implements ShouldQueue
 {
@@ -109,9 +108,7 @@ class ProcessProjectDocumentJob implements ShouldQueue
             $tmpOutputPath,
         ];
 
-        $process = new Process($command);
-        $process->setTimeout(null);
-
+        $process = FFMPEGService::getProcess($command);
         $process->run();
 
         if (!$process->isSuccessful()) {
@@ -128,7 +125,10 @@ class ProcessProjectDocumentJob implements ShouldQueue
         $text = WhisperService::transcribe($tmpOutputPath);
 
         unlink($tmpFilePath);
-        unlink($tmpOutputPath);
+
+        if (file_exists($tmpOutputPath)) {
+            unlink($tmpOutputPath);
+        }
 
         if ($text) {
             $this->projectDocument->update([

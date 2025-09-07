@@ -6,6 +6,13 @@ use Symfony\Component\Process\Process;
 
 class FFMPEGService
 {
+    public static function getProcess($command): Process
+    {
+        $process = new Process($command);
+        $process->setTimeout(null);
+        return $process;
+    }
+
     public static function trim(string $inputFile, int $duration = 900): void
     {
         $outputFile = pathinfo($inputFile, PATHINFO_DIRNAME)

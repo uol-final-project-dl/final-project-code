@@ -27,3 +27,4 @@ yarn-error.log
 /.zed
 /docker/react-buildbox/templates/base/node_modules/*
 /docker/react-buildbox/templates/base/node_modules/
+.DS_STORE

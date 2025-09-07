@@ -8,7 +8,7 @@ class SignupControllerTest extends TestCase
 {
     public function test_post_signup(): void
     {
-        $password = fake()->password;
+        $password = fake()->password(8);
         $postData = [
             'name' => fake()->name,
             'email' => fake()->unique()->safeEmail,

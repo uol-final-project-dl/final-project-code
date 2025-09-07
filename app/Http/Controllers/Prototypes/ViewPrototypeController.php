@@ -13,16 +13,6 @@ use Illuminate\View\View;
 
 class ViewPrototypeController extends Controller
 {
-    public function getProjects(): array
-    {
-        $user = User::safeInstance(auth()->user());
-
-        return [
-            'projects' => $user->projects()->get(),
-            'result' => 1,
-        ];
-    }
-
     public function getPrototypeFile(Prototype $prototype, $file = 'index.html'): Response
     {
         if ($prototype->user_id !== auth()->id()) {

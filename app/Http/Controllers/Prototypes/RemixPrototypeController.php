@@ -18,7 +18,7 @@ class RemixPrototypeController extends Controller
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function remixPrototype(Project $project, Prototype $prototype)
+    public function remixPrototype(Project $project, Prototype $prototype): void
     {
         if ($project->id !== $prototype->project_idea->project_id
             || $prototype->user_id !== auth()->id()
@@ -32,7 +32,6 @@ class RemixPrototypeController extends Controller
         ]);
 
         GeneratePrototype::dispatch($prototype, true, request()->get('description', ''));
-
     }
 }
 

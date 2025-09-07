@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\StatusEnum;
 use App\Services\WebSocket\NotifyService;
 use App\Traits\HasSelfCasting;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Prototype extends Model
 {
-    use HasSelfCasting;
+    use HasSelfCasting, HasFactory;
 
     protected $table = 'prototypes';
 

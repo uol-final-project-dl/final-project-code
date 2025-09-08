@@ -11,7 +11,7 @@ class PrototypeGenerationWithContextService
 {
     use HasMakeAble;
 
-    private function buildMessages(string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null): array
+    private static function buildMessages(string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null): array
     {
         $package = file_get_contents(base_path('docker/react-buildbox/templates/base/package.json'));
         $baseline = file_get_contents(base_path('docker/react-buildbox/templates/base/src/App.jsx'));
@@ -56,13 +56,13 @@ class PrototypeGenerationWithContextService
     /**
      * @throws \Exception
      */
-    public function generate(Prototype $prototype, string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null, bool $useImages = false): array
+    public static function generate(Prototype $prototype, string $userPrompt, string $codeSoFar = null, string $oldCode = null, string $remixDescription = null, bool $useImages = false): array
     {
         if ($prototype->project_idea->project->style_config) {
             $userPrompt .= "\n\n STYLE PREFERENCES: \n" . $prototype->project_idea->project->style_config . "\n";
         }
 
-        $messages = $this->buildMessages($userPrompt, $codeSoFar, $oldCode, $remixDescription);
+        $messages = self::buildMessages($userPrompt, $codeSoFar, $oldCode, $remixDescription);
         $provider = $prototype->user->provider;
 
         if ($useImages) {

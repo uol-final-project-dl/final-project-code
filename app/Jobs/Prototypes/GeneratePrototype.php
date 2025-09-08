@@ -136,13 +136,12 @@ class GeneratePrototype implements ShouldQueue
      */
     private function generateWithLLM(string $prompt): array
     {
-        $generationService = PrototypeGenerationWithContextService::make();
         if ($this->remix && $this->remixDescription) {
             $oldCode = Storage::disk('local')->get("jobs/{$this->prototype->uuid}/patch-App.jsx");
-            return $generationService->generate($this->prototype, $prompt, null, $oldCode, $this->remixDescription);
+            return PrototypeGenerationWithContextService::generate($this->prototype, $prompt, null, $oldCode, $this->remixDescription);
         }
 
-        return $generationService->generate($this->prototype, $prompt, null, null, null, true);
+        return PrototypeGenerationWithContextService::generate($this->prototype, $prompt, null, null, null, true);
     }
 
     /**
@@ -150,12 +149,11 @@ class GeneratePrototype implements ShouldQueue
      */
     private function continueGeneratingWithLLM(string $prompt, string $patchFile, string $codeSoFar, string $uuid): array
     {
-        $generationService = PrototypeGenerationWithContextService::make();
         if ($this->remix && $this->remixDescription) {
             $oldCode = Storage::disk('local')->get("jobs/{$this->prototype->uuid}/patch-App.jsx");
-            [$rest, $logprobs] = $generationService->generate($this->prototype, $prompt, $codeSoFar, $oldCode, $this->remixDescription);
+            [$rest, $logprobs] = PrototypeGenerationWithContextService::generate($this->prototype, $prompt, $codeSoFar, $oldCode, $this->remixDescription);
         } else {
-            [$rest, $logprobs] = $generationService->generate($this->prototype, $prompt, $codeSoFar);
+            [$rest, $logprobs] = PrototypeGenerationWithContextService::generate($this->prototype, $prompt, $codeSoFar);
         }
 
         Storage::disk('local')->put($patchFile, $codeSoFar . "\n" . $rest);

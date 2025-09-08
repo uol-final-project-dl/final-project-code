@@ -12,6 +12,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
@@ -125,15 +126,14 @@ class GeneratePullRequest implements ShouldQueue
     }
 
     /**
+     * @throws ConnectionException
      * @throws JsonException
-     * @throws BindingResolutionException
      */
     private function generateWithLLM(string $prompt): array
     {
-        $codeGenerationWithContextService = CodeGenerationWithContextService::make();
         $project = $this->prototype->project_idea->project;
         $provider = $this->prototype->user->provider;
-        return $codeGenerationWithContextService->generateCode($project, $provider, $prompt);
+        return CodeGenerationWithContextService::generateCode($project, $provider, $prompt);
     }
 
 }

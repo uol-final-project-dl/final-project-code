@@ -13,7 +13,7 @@ class CodeGenerationWithContextService
 {
     use HasMakeAble;
 
-    private function buildMessages(string $userPrompt, Collection $chunks): array
+    private static function buildMessages(string $userPrompt, Collection $chunks): array
     {
         $context = $chunks
             ->values()
@@ -64,11 +64,11 @@ class CodeGenerationWithContextService
      * @throws \JsonException
      * @throws \Exception
      */
-    public function generateCode(Project $project, string $provider, string $userPrompt): array
+    public static function generateCode(Project $project, string $provider, string $userPrompt): array
     {
         $chunks = SearchVectorDBService::searchFileChunks($project->id, $userPrompt);
 
-        $messages = $this->buildMessages($userPrompt, $chunks);
+        $messages = self::buildMessages($userPrompt, $chunks);
         $images = ImageBase64Service::base64DocumentsFromProject($project);
 
         return LLMCompletionService::chat($provider, [

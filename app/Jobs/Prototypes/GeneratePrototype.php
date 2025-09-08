@@ -25,23 +25,22 @@ class GeneratePrototype implements ShouldQueue
 
     public int $timeout = 600;
 
-    private PrototypeGenerationWithContextService $prototypeGenerationWithContextService;
+    private Prototype $prototype;
     private bool $remix;
     private string|null $remixDescription;
-
     private bool $returnOutput;
 
     /**
      * @throws BindingResolutionException
      */
     public function __construct(
-        public Prototype   $prototype,
-        public bool        $remixConstruct = false,
-        public string|null $remixDescriptionConstruct = null,
-        bool               $returnOutput = false
+        Prototype   $prototypeConstruct,
+        bool        $remixConstruct = false,
+        string|null $remixDescriptionConstruct = null,
+        bool        $returnOutput = false
     )
     {
-        $this->prototypeGenerationWithContextService = PrototypeGenerationWithContextService::make();
+        $this->prototype = $prototypeConstruct;
         $this->remix = $remixConstruct ?? false;
         $this->remixDescription = $remixDescriptionConstruct ?? null;
         $this->returnOutput = $returnOutput;
@@ -58,7 +57,6 @@ class GeneratePrototype implements ShouldQueue
         $uuid = $this->prototype->uuid;
         $patchFile = "jobs/$uuid/patch-App.jsx";
         $workDirectory = storage_path("app/private/jobs/$uuid");
-        $logprobs = [];
         $extraLogprobs = [];
 
         Storage::disk('local')->makeDirectory("jobs/$uuid");
@@ -138,12 +136,13 @@ class GeneratePrototype implements ShouldQueue
      */
     private function generateWithLLM(string $prompt): array
     {
+        $generationService = PrototypeGenerationWithContextService::make();
         if ($this->remix && $this->remixDescription) {
             $oldCode = Storage::disk('local')->get("jobs/{$this->prototype->uuid}/patch-App.jsx");
-            return $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt, null, $oldCode, $this->remixDescription);
+            return $generationService->generate($this->prototype, $prompt, null, $oldCode, $this->remixDescription);
         }
 
-        return $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt, null, null, null, true);
+        return $generationService->generate($this->prototype, $prompt, null, null, null, true);
     }
 
     /**
@@ -151,11 +150,12 @@ class GeneratePrototype implements ShouldQueue
      */
     private function continueGeneratingWithLLM(string $prompt, string $patchFile, string $codeSoFar, string $uuid): array
     {
+        $generationService = PrototypeGenerationWithContextService::make();
         if ($this->remix && $this->remixDescription) {
             $oldCode = Storage::disk('local')->get("jobs/{$this->prototype->uuid}/patch-App.jsx");
-            [$rest, $logprobs] = $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt, $codeSoFar, $oldCode, $this->remixDescription);
+            [$rest, $logprobs] = $generationService->generate($this->prototype, $prompt, $codeSoFar, $oldCode, $this->remixDescription);
         } else {
-            [$rest, $logprobs] = $this->prototypeGenerationWithContextService->generate($this->prototype, $prompt, $codeSoFar);
+            [$rest, $logprobs] = $generationService->generate($this->prototype, $prompt, $codeSoFar);
         }
 
         Storage::disk('local')->put($patchFile, $codeSoFar . "\n" . $rest);

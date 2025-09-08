@@ -7,6 +7,7 @@ use App\Models\Prototype;
 use App\Services\CodeGeneration\CodeGenerationWithContextService;
 use App\Services\Github\GithubRepositoriesService;
 use App\Services\WebSocket\NotifyService;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -14,35 +15,32 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
+use JsonException;
+use Pusher\ApiErrorException;
+use Pusher\PusherException;
 
 class GeneratePullRequest implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $timeout = 600;
-
-    private CodeGenerationWithContextService $codeGenerationWithContextService;
     private bool $returnOutput;
 
-    /**
-     * @throws BindingResolutionException
-     */
     public function __construct(
         public Prototype $prototype,
         bool             $returnOutput = false,
     )
     {
-        $this->codeGenerationWithContextService = CodeGenerationWithContextService::make();
         $this->returnOutput = $returnOutput;
     }
 
     /**
-     * @return void
+     * @return array|null
      * @throws BindingResolutionException
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \JsonException
-     * @throws \Pusher\ApiErrorException
-     * @throws \Pusher\PusherException
+     * @throws GuzzleException
+     * @throws JsonException
+     * @throws ApiErrorException
+     * @throws PusherException
      */
     public function handle(): ?array
     {
@@ -60,7 +58,16 @@ class GeneratePullRequest implements ShouldQueue
             return null;
         }
 
-        $codeFiles = json_decode($codeFiles, true, 512, JSON_THROW_ON_ERROR);
+        try {
+            $codeFiles = json_decode($codeFiles, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $this->prototype->update([
+                'status' => StatusEnum::FAILED->value,
+                'log' => 'LLM returned invalid JSON: ' . $e->getMessage(),
+            ]);
+            NotifyService::reloadUserPage($this->prototype->project_idea->project->user_id);
+            return null;
+        }
 
         if (empty($codeFiles)) {
             $this->prototype->update([
@@ -118,13 +125,15 @@ class GeneratePullRequest implements ShouldQueue
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
+     * @throws BindingResolutionException
      */
     private function generateWithLLM(string $prompt): array
     {
+        $codeGenerationWithContextService = CodeGenerationWithContextService::make();
         $project = $this->prototype->project_idea->project;
         $provider = $this->prototype->user->provider;
-        return $this->codeGenerationWithContextService->generateCode($project, $provider, $prompt);
+        return $codeGenerationWithContextService->generateCode($project, $provider, $prompt);
     }
 
 }

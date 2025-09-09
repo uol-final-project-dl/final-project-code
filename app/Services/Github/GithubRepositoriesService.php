@@ -123,7 +123,7 @@ class GithubRepositoriesService
         $fileInfo = $gitApi->contents()->show($owner, $name, $filePath, $branchName);
         $sha = $fileInfo['sha'] ?? null;
 
-        $committer = array('name' => 'BrainstormingTool', 'email' => '226888094+devlomb123@users.noreply.github.com');
+        $committer = array('name' => 'BrainstormingTool', 'email' => config('github.committer_email'));
 
         // Update the file
         $gitApi->contents()->update(
@@ -148,7 +148,7 @@ class GithubRepositoriesService
     {
         [$owner, $name] = self::getRepoInfo($repositoryId);
 
-        $committer = array('name' => 'BrainstormingTool', 'email' => '226888094+devlomb123@users.noreply.github.com');
+        $committer = array('name' => 'BrainstormingTool', 'email' => config('github.committer_email'));
 
         $gitApi = GitHub::repo();
 

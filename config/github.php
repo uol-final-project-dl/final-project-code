@@ -119,4 +119,5 @@ return [
 
     ],
 
+    'committer_email' => env('GITHUB_COMMIT_EMAIL', null),
 ];

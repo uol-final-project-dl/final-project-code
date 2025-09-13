@@ -28,3 +28,5 @@ yarn-error.log
 /docker/react-buildbox/templates/base/node_modules/*
 /docker/react-buildbox/templates/base/node_modules/
 .DS_STORE
+/sonar-project.properties
+/.scannerwork

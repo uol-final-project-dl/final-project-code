@@ -34,7 +34,8 @@ class Prototype extends Model
         'description',
         'status',
         'bundle',
-        'log'
+        'log',
+        'feedback_score',
     ];
 
     public function project_idea(): BelongsTo

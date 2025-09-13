@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Projects\ProjectsController;
 use App\Http\Controllers\Projects\SingleProjectController;
+use App\Http\Controllers\Prototypes\FeedbackController;
 use App\Http\Controllers\Prototypes\OpenBranchController;
 use App\Http\Controllers\Prototypes\RemixPrototypeController;
 use App\Http\Controllers\Prototypes\RetryFailedPrototypeController;
@@ -63,6 +64,7 @@ Route::group(['prefix' => 'api', 'as' => 'api.'], static function () use ($authM
         // PROTOTYPING
         Route::post('/project/{project}/prototype/{prototype}/remix', [RemixPrototypeController::class, 'remixPrototype']);
         Route::get('/project/{project}/prototype/{prototype}/retry', [RetryFailedPrototypeController::class, 'retryPrototype']);
+        Route::post('/project/{project}/prototype/{prototype}/feedback', [FeedbackController::class, 'saveFeedback']);
 
     });
 });

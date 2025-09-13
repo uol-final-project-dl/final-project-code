@@ -9,6 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property mixed $status
  * @property mixed $created_at
  * @property mixed $updated_at
+ * @property mixed $feedback_score
  */
 class PrototypeResource extends JsonResource
 {
@@ -17,6 +18,7 @@ class PrototypeResource extends JsonResource
         return [
             'id' => $this->id,
             'status' => $this->status,
+            'feedback_score' => $this->feedback_score,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

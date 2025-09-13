@@ -11,6 +11,7 @@ export interface IProjectIdea {
 
 export interface IPrototype {
     id: number
+    feedback_score: number | null
     status: string
     uuid: string
     created_at: string

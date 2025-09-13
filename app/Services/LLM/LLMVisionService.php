@@ -2,6 +2,7 @@
 
 namespace App\Services\LLM;
 
+use App\Enums\ProviderEnum;
 use App\Services\Anthropic\AnthropicCompletionService;
 use App\Services\Fireworks\FireworksService;
 use App\Services\Google\GoogleCompletionService;
@@ -38,7 +39,7 @@ class LLMVisionService
     public static function prompt(string $provider, array $config, string $base64, string $prompt, string $mimeType): string
     {
         return match ($provider) {
-            'anthropic' => AnthropicCompletionService::chat([
+            ProviderEnum::ANTHROPIC->value => AnthropicCompletionService::chat([
                 'model' => self::translateModelFromProvider($provider),
                 'temperature' => $config['temperature'] ?? 0.7,
                 'max_tokens' => $config['max_tokens'] ?? 3000,
@@ -62,7 +63,7 @@ class LLMVisionService
                     ],
                 ],
             ])[0],
-            'google' => GoogleCompletionService::chat([
+            ProviderEnum::GOOGLE->value => GoogleCompletionService::chat([
                 'model' => self::translateModelFromProvider($provider),
                 "contents" => [
                     [
@@ -84,7 +85,7 @@ class LLMVisionService
                     'temperature' => $config['temperature'] ?? 0.7,
                 ],
             ])[0],
-            'qwen' => FireworksService::chat(
+            ProviderEnum::QWEN->value => FireworksService::chat(
                 [
                     'model' => self::translateModelFromProvider($provider),
                     'temperature' => $config['temperature'] ?? 0.7,
@@ -132,9 +133,9 @@ class LLMVisionService
     private static function translateModelFromProvider(string $provider): string
     {
         return match ($provider) {
-            'anthropic' => 'claude-sonnet-4-20250514',
-            'google' => 'gemini-2.5-pro',
-            'qwen' => 'accounts/fireworks/models/qwen3-235b-a22b-instruct-2507',
+            ProviderEnum::ANTHROPIC->value => 'claude-sonnet-4-20250514',
+            ProviderEnum::GOOGLE->value => 'gemini-2.5-pro',
+            ProviderEnum::QWEN->value => 'accounts/fireworks/models/qwen3-235b-a22b-instruct-2507',
             default => 'gpt-4.1',
         };
     }

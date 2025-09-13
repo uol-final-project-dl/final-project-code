@@ -51,24 +51,32 @@ class Evaluations extends Command
     public function handle(): void
     {
         //$providers = ProviderEnum::getValues();
-        $providers = [ProviderEnum::GOOGLE->value];
+        $providers = [
+            ProviderEnum::LLAMA_LOCAL->value,
+            ProviderEnum::QWEN_LOCAL->value,
+            ProviderEnum::DEEPSEEK_LOCAL->value,
+            ProviderEnum::LLAMA->value,
+            ProviderEnum::QWEN->value,
+            ProviderEnum::DEEPSEEK->value,
+        ];
         $user = User::query()->first();
-        $outputPath = 'eval_dataset.jsonl';
+        $microtimeInt = (int)(microtime(true) * 1000);
+        $outputPath = 'eval_dataset_with_retry_' . $microtimeInt . '.jsonl';
 
         $dataset = [
-            'AtlasPM' => [
-                'AtlasPM.pdf',
-                //'AtlasPM-1.png',
-                //'AtlasPM-2.png'
+            'TaskManager' => [
+                'TaskManager.pdf',
+                'TaskManager-1.png',
+                'TaskManager-2.png'
             ],
-            /*'Helios' => [
-                'Helios.pdf',
-                'Helios-1.png'
+            'GraphCalculator' => [
+                'GraphCalculator.pdf',
+                'GraphCalculator-1.png'
             ],
-            'FungalFrontier' => [
-                'FungalFrontier.pdf',
-                'FungalFrontier-1.png'
-            ],*/
+            'CookieClickerGame' => [
+                'CookieClickerGame.pdf',
+                'CookieClickerGame-1.png'
+            ],
         ];
 
         $metrics = [];
@@ -104,13 +112,23 @@ class Evaluations extends Command
                 [$ideasString, $ideaLogprobs] = $this->generateIdeas($project);
                 $endIdeaTime = microtime(true);
 
-                if ($ideasString) {
-                    $ideas = json_decode($ideasString, true, 512, JSON_THROW_ON_ERROR);
-                    $metrics[$provider][$caseName]['idea_count'] = count($ideas);
-                    $metrics[$provider][$caseName]['idea_fails'] = (count($ideas) === 0) ? 1.0 : 0.0;
-                    $metrics[$provider][$caseName]['idea_generation_time_seconds'] = round($endIdeaTime - $startIdeaTime, 2);
-                    $metrics[$provider][$caseName]['idea_perplexity'] = $this->calculatePerplexity($ideaLogprobs);
-                } else {
+                try {
+                    if ($ideasString) {
+                        $project->refresh();
+                        $ideas = $project->project_ideas;
+                        $metrics[$provider][$caseName]['idea_count'] = count($ideas->toArray());
+                        $metrics[$provider][$caseName]['idea_fails'] = (count($ideas->toArray()) === 0) ? 1.0 : 0.0;
+                        $metrics[$provider][$caseName]['idea_generation_time_seconds'] = round($endIdeaTime - $startIdeaTime, 2);
+                        $metrics[$provider][$caseName]['idea_perplexity'] = $this->calculatePerplexity($ideaLogprobs);
+                    } else {
+                        $metrics[$provider][$caseName]['idea_count'] = 0;
+                        $metrics[$provider][$caseName]['idea_fails'] = 1.0;
+                        $metrics[$provider][$caseName]['idea_generation_time_seconds'] = round($endIdeaTime - $startIdeaTime, 2);
+                        $metrics[$provider][$caseName]['idea_perplexity'] = 0.0;
+                        continue;
+                    }
+                } catch (JsonException $e) {
+                    $this->error("Failed parsing ideas JSON for provider: $provider, case: $caseName. Error: " . $e->getMessage());
                     $metrics[$provider][$caseName]['idea_count'] = 0;
                     $metrics[$provider][$caseName]['idea_fails'] = 1.0;
                     $metrics[$provider][$caseName]['idea_generation_time_seconds'] = round($endIdeaTime - $startIdeaTime, 2);
@@ -125,7 +143,7 @@ class Evaluations extends Command
                     'provider' => $provider,
                     'case' => $caseName,
                     'metrics' => $metrics[$provider][$caseName],
-                    'ideas' => $ideas,
+                    'ideas' => $ideas->toArray(),
                     'prototypes' => $prototypeCodes
                 ], $outputPath);
 
@@ -209,7 +227,7 @@ class Evaluations extends Command
         $metrics['average_prototype_time_seconds'] = 0.0;
 
         $outputs = [];
-        foreach ($project->project_ideas()->limit(1)->get() as $idea) {
+        foreach ($project->project_ideas()->get() as $idea) {
             $this->info("Generating prototype for $idea->title");
 
             $metrics['prototype_count']++;
@@ -226,16 +244,45 @@ class Evaluations extends Command
             ]);
 
             $startPrototypeTime = microtime(true);
-            $generatePrototype = new GeneratePrototype($prototype, false, null, true);
-            [$outputString, $outputLogprobs] = $generatePrototype->handle();
-            $endPrototypeTime = microtime(true);
 
-            $metrics['prototype_generation_time_seconds'] += round($endPrototypeTime - $startPrototypeTime, 2);
+            try {
+                $generatePrototype = new GeneratePrototype($prototype, false, null, true);
+                [$outputString, $outputLogprobs] = $generatePrototype->handle();
+            } catch (\Exception $e) {
+                $this->error("Error creating prototype for idea: " . $idea->title . ". Error: " . $e->getMessage());
+                $metrics['prototype_fails']++;
+                $endPrototypeTime = microtime(true);
+                $metrics['prototype_generation_time_seconds'] += round($endPrototypeTime - $startPrototypeTime, 2);
+                continue;
+            }
+
 
             $prototype->refresh();
             if ($prototype->status !== StatusEnum::READY->value) {
-                $metrics['prototype_fails']++;
-                $this->info("Failed generating prototype for idea: " . $idea->title);
+                // IMPLEMENT 1 RETRY
+                try {
+                    $generatePrototype = new GeneratePrototype($prototype, false, null, true);
+                    [$outputString, $outputLogprobs] = $generatePrototype->handle();
+                } catch (\Exception $e) {
+                    $this->error("Error creating prototype for idea: " . $idea->title . ". Error: " . $e->getMessage());
+                    $metrics['prototype_fails']++;
+                    $endPrototypeTime = microtime(true);
+                    $metrics['prototype_generation_time_seconds'] += round($endPrototypeTime - $startPrototypeTime, 2);
+                    continue;
+                }
+                $prototype->refresh();
+
+                if ($prototype->status !== StatusEnum::READY->value) {
+                    $metrics['prototype_fails']++;
+                    $this->info("Failed generating prototype for idea: " . $idea->title);
+                } else {
+                    $this->info("Generated prototype for idea: " . $idea->title);
+                    $outputs[] = [
+                        'idea' => $idea->title . ' : ' . $idea->description,
+                        'code' => $outputString,
+                        'perplexity' => $this->calculatePerplexity($outputLogprobs)
+                    ];
+                }
             } else {
                 $this->info("Generated prototype for idea: " . $idea->title);
                 $outputs[] = [
@@ -245,6 +292,8 @@ class Evaluations extends Command
                 ];
             }
 
+            $endPrototypeTime = microtime(true);
+            $metrics['prototype_generation_time_seconds'] += round($endPrototypeTime - $startPrototypeTime, 2);
             $this->info("Generated prototype for idea: " . $idea->title);
         }
 

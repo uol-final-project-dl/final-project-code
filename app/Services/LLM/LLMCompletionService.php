@@ -2,6 +2,7 @@
 
 namespace App\Services\LLM;
 
+use App\Enums\ProviderEnum;
 use App\Services\Anthropic\AnthropicCompletionService;
 use App\Services\Fireworks\FireworksService;
 use App\Services\Google\GoogleCompletionService;
@@ -17,7 +18,7 @@ class LLMCompletionService
     public static function chat(string $provider, array $config, array $images = []): array
     {
         return match ($provider) {
-            'openai' => OpenAICompletionsService::chat(
+            ProviderEnum::OPENAI->value => OpenAICompletionsService::chat(
                 [
                     'model' => self::translateModelFromProvider($provider, $config['model']),
                     'messages' => $config['messages'],
@@ -25,7 +26,7 @@ class LLMCompletionService
                     'max_completion_tokens' => $config['max_tokens'] ?? 3000,
                     'logprobs' => true,
                 ], $images),
-            'anthropic' => AnthropicCompletionService::chat([
+            ProviderEnum::ANTHROPIC->value => AnthropicCompletionService::chat([
                 'model' => self::translateModelFromProvider($provider, $config['model']),
                 'system' => $config['messages'][0]['content'] ?? '',
                 // I pass all messages except the first one as expects the system to be set separately
@@ -33,7 +34,7 @@ class LLMCompletionService
                 'temperature' => $config['temperature'] ?? 0.7,
                 'max_tokens' => $config['max_tokens'] ?? 3000,
             ], $images),
-            'google' => GoogleCompletionService::chat([
+            ProviderEnum::GOOGLE->value => GoogleCompletionService::chat([
                 'model' => self::translateModelFromProvider($provider, $config['model']),
                 'system_instruction' => [
                     "parts" =>
@@ -54,12 +55,12 @@ class LLMCompletionService
                     //'maxOutputTokens' => $config['max_tokens'] ?? 3000,
                 ],
             ], $images),
-            'llama-local', 'qwen-local', 'deepseek-local' => OllamaService::chat([
+            ProviderEnum::LLAMA_LOCAL->value, ProviderEnum::QWEN_LOCAL->value, ProviderEnum::DEEPSEEK_LOCAL->value => OllamaService::chat([
                 'model' => self::translateModelFromProvider($provider, $config['model']),
                 'messages' => $config['messages'],
                 'temperature' => $config['temperature'] ?? 0.7
             ]),
-            'llama', 'qwen', 'deepseek' => FireworksService::chat(
+            ProviderEnum::LLAMA->value, ProviderEnum::QWEN->value, ProviderEnum::DEEPSEEK->value => FireworksService::chat(
                 [
                     'model' => self::translateModelFromProvider($provider, $config['model']),
                     'messages' => $config['messages'],
@@ -73,39 +74,39 @@ class LLMCompletionService
     private static function translateModelFromProvider(string $provider, string $model): string
     {
         return match ($provider) {
-            'openai' => match ($model) {
+            ProviderEnum::OPENAI->value => match ($model) {
                 'coding' => 'gpt-4.1',
                 default => 'gpt-4o-mini',
             },
-            'anthropic' => match ($model) {
+            ProviderEnum::ANTHROPIC->value => match ($model) {
                 'coding' => 'claude-sonnet-4-20250514',
                 default => 'claude-3-5-haiku-latest',
             },
-            'google' => match ($model) {
+            ProviderEnum::GOOGLE->value => match ($model) {
                 'coding' => 'gemini-2.5-pro',
                 default => 'gemini-2.5-flash',
             },
-            'llama-local' => match ($model) {
+            ProviderEnum::LLAMA_LOCAL->value => match ($model) {
                 'coding' => 'llama3.1:8b-instruct-q4_K_M',
                 default => 'llama3.1:8b-instruct-q4_K_M',
             },
-            'qwen-local' => match ($model) {
+            ProviderEnum::QWEN_LOCAL->value => match ($model) {
                 'coding' => 'qwen2.5-coder:7b-instruct-q4_K_M',
                 default => 'qwen2.5:7b-instruct-q4_K_M',
             },
-            'deepseek-local' => match ($model) {
+            ProviderEnum::DEEPSEEK_LOCAL->value => match ($model) {
                 'coding' => 'deepseek-coder-v2:16b-lite-instruct-q4_K_M',
                 default => 'deepseek-v2:16b-lite-chat-q4_K_M',
             },
-            'llama' => match ($model) {
+            ProviderEnum::LLAMA->value => match ($model) {
                 'coding' => 'accounts/fireworks/models/llama-v3p1-405b-instruct',
                 default => 'accounts/fireworks/models/llama-v3p1-405b-instruct',
             },
-            'qwen' => match ($model) {
+            ProviderEnum::QWEN->value => match ($model) {
                 'coding' => 'accounts/fireworks/models/qwen3-coder-480b-a35b-instruct',
                 default => 'accounts/fireworks/models/qwen3-235b-a22b-instruct-2507',
             },
-            'deepseek' => match ($model) {
+            ProviderEnum::DEEPSEEK->value => match ($model) {
                 'coding' => 'accounts/fireworks/models/deepseek-v3p1',
                 default => 'accounts/fireworks/models/deepseek-v3p1',
             },

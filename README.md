@@ -26,7 +26,7 @@ To run the project, please follow these steps:
 10. Generate the application key:
    ```bash
    docker compose run --rm artisan key:generate
-    ```
+   ```
 11. Build the frontend assets:
    ```bash
    yarn watch

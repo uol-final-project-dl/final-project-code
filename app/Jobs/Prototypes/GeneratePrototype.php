@@ -169,7 +169,7 @@ class GeneratePrototype implements ShouldQueue
         $cmd = [
             'docker', 'run', '--rm',
             '--volumes-from', $containerId,
-            'brainstorm-to-prototype-react-buildbox:latest',
+            'final-project-code-main-react-buildbox:latest',
             'sh', '-c',
             "jobDir=/var/www/html/storage/app/private/jobs/$uuid &&
              cp \$jobDir/patch-App.jsx /app/templates/base/src/App.jsx &&

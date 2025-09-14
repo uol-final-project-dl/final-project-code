@@ -6,34 +6,37 @@ To run the project, please follow these steps:
 1. Clone the repository.
 2. Navigate to the project directory.
 3. Make sure you have Docker, Docker Compose, Composer and npm/yarn installed.
-4. Run docker-compose up -d to start the Docker containers.
-5. Install the required dependencies using Composer and npm/yarn:
+4. Run to start the Docker containers.
+    ```bash
+    docker compose up -d
+     ```
+5. Install the required dependencies using Composer and npm/yarn
     ```bash
    composer install
    yarn
     ```
-6. Set up your environment variables by copying the .env.example file to .env and updating the necessary values (
+6. Create a schema on the mysql server called "brainstorm-to-prototype" using the credentials on the evn example file.
+7. Login to Minio at http://host.docker.internal:9102 with the credentials provided in the .env file.
+8. Create a bucket named "uol" on Minio and a key with read and write permissions to use in the .env file.
+9. Set up your environment variables by copying the .env.example file to .env and updating the necessary values (database, API keys, etc.). Run:
    ```bash
-   database, API keys, etc.). Run:
+   docker compose run --rm artisan migrate  --seed
    docker compose run --rm artisan optimize:clear
     ```
-7. Generate the application key:
+10. Generate the application key:
    ```bash
    docker compose run --rm artisan key:generate
     ```
-8. Run the database migrations and seeders:
-   ```bash
-   docker compose run --rm artisan migrate --seed
-    ```
-9. Build the frontend assets:
+11. Build the frontend assets:
    ```bash
    yarn watch
     ```
-10. Access the application in your web browser at http://host.docker.internal:8325.
-11. Login to Minio at http://host.docker.internal:9102 with the credentials provided in the .env file.
-12. Create a bucket named "brainstorm-to-prototype" on Minio.
-13. Add the Minio credentials to the .env file.
-14.
+12. Start the queue worker
+    ```bash
+    docker compose run --rm artisan queue:work
+     ```
+13. Access the application in your web browser at http://host.docker.internal:8325.
+14. If your folder is not called final-project-code-main, please change it in GeneratePrototype.php file line 172.
 
 To run the local ollama server for open source models, use the following commands (only on Mac):
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Button, Checkbox, Spin} from "antd";
+import {Button, Spin, Table} from "antd";
 import IProject from "../../../../../../interfaces/IProject";
 import {useDispatch} from "react-redux";
 import {StatusEnum} from "../../../../../../enums/StatusEnum";
@@ -23,35 +23,36 @@ export default function ProjectIdeatingRequestData({project}: { project: IProjec
     }
 
     return project ? <div>
-            <div className={'d-flex justify-content-start mb-4 text-bold'}>
+            <div className={'d-flex justify-content-start mb-4 h6 text-bold'}>
                 Please choose the best ideas below for prototyping.
             </div>
             <div>
-                {
-                    project.project_ideas.map(idea => (
-                        <div key={idea.id} className={'mt-2'}>
-                            <Checkbox
-                                className={'mr-2'}
-                                id={`idea-${idea.id}`}
-                                name={`idea-${idea.id}`}
-                                value={idea.id}
-                                checked={selectedIdeas.includes(idea.id)}
-                                onChange={(e) => {
-                                    const id = parseInt(e.target.value);
-                                    setSelectedIdeas(prev => {
-                                        if (prev.includes(id)) {
-                                            return prev.filter(i => i !== id);
-                                        } else {
-                                            return [...prev, id];
-                                        }
-                                    });
-                                }}
-                            />
-                            <span className={'text-bold'}>{idea.title}</span>
-                            <span className={'text-muted'}> ({idea.description})</span>
-                        </div>
-                    ))
-                }
+                <Table
+                    dataSource={project.project_ideas}
+                    rowKey="id"
+                    pagination={false}
+                    rowSelection={{
+                        type: 'checkbox',
+                        selectedRowKeys: selectedIdeas,
+                        onChange: (selectedRowKeys: React.Key[]) => {
+                            setSelectedIdeas(selectedRowKeys as number[]);
+                        },
+                    }}
+                >
+                    <Table.Column
+                        title={'Title'}
+                        dataIndex={'title'}
+                        key={'title'}
+                        render={(text: string) => <span className={'text-bold'}>{text}</span>}
+                    />
+                    <Table.Column
+                        title={'Description'}
+                        dataIndex={'description'}
+                        key={'description'}
+                        render={(text: string) => <span className={'text-muted'}>{text}</span>}
+                    />
+
+                </Table>
 
                 <div className={'mt-4'}>
                     <Button type={'primary'} onClick={() => goToNextStatus()}>

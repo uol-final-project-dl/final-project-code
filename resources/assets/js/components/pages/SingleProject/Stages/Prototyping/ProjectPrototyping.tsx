@@ -4,7 +4,6 @@ import {Spin} from "antd";
 import IProject from "../../../../../interfaces/IProject";
 import {useSelector} from "react-redux";
 import {StatusEnum} from "../../../../../enums/StatusEnum";
-import {getProjectStageLabel, ProjectStageEnum} from "../../../../../enums/ProjectStageEnum";
 import ProjectPrototypingReady from "./StatusReady/ProjectPrototypingReady";
 
 export default function ProjectPrototyping() {
@@ -28,9 +27,6 @@ export default function ProjectPrototyping() {
     }
 
     return project ? <div>
-            <div className={'d-flex justify-content-start mb-4 text-bold'}>
-                {getProjectStageLabel(project.stage as ProjectStageEnum)}
-            </div>
             <div>
                 {projectStageStatus()}
             </div>

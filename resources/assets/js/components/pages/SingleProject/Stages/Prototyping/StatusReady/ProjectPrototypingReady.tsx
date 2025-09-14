@@ -71,8 +71,8 @@ export default function ProjectPrototypingReady({project}: { project: IProject }
     }
 
     return project ? <div>
-            <div className={'d-flex justify-content-start mb-4 text-bold'}>
-                Please find below the prototypes
+            <div className={'d-flex justify-content-start mb-4 h6 text-bold'}>
+                Please find the prototypes below. You can view, remix or retry them as needed.
             </div>
 
             <Table

@@ -4,8 +4,8 @@ import {Spin} from "antd";
 import IProject from "../../../../../interfaces/IProject";
 import {useSelector} from "react-redux";
 import {StatusEnum} from "../../../../../enums/StatusEnum";
-import {getProjectStageLabel, ProjectStageEnum} from "../../../../../enums/ProjectStageEnum";
 import ProjectBrainstormingRequestData from "./StatusRequestData/ProjectBrainstormingRequestData";
+import {LoadingOutlined} from "@ant-design/icons";
 
 export default function ProjectBrainstorming() {
     const project = useSelector((state: { project: { project: IProject | null } }) => state.project.project);
@@ -20,8 +20,10 @@ export default function ProjectBrainstorming() {
                     <ProjectBrainstormingRequestData project={project}/>
                 </div>;
             case StatusEnum.QUEUED:
-                return <div>
-                    <span className={'text-warning'}>Queued for processing</span>
+                return <div className={'d-flex flex-column align-items-center justify-content-center'}>
+                    <span className={'h5 mb-2'} style={{color: '#83730e'}}>Queued</span>
+                    <span className={'h6 mb-2'}>Please wait while we process the ideas...</span>
+                    <Spin indicator={<LoadingOutlined style={{fontSize: 48}} spin/>}/>
                 </div>
             case StatusEnum.READY:
                 return <div>
@@ -35,9 +37,6 @@ export default function ProjectBrainstorming() {
     }
 
     return project ? <div>
-            <div className={'d-flex justify-content-start mb-4 text-bold'}>
-                {getProjectStageLabel(project.stage as ProjectStageEnum)}
-            </div>
             <div>
                 {projectStageStatus()}
             </div>

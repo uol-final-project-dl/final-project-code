@@ -5,6 +5,7 @@ import IProject from "../../../interfaces/IProject";
 import {Button, Table} from "antd";
 import UserRoutes, {fullRoute} from "../../utilities/UserRoutes";
 import {useNavigate} from "react-router-dom";
+import {getProjectStageLabel, ProjectStageEnum} from "../../../enums/ProjectStageEnum";
 
 export default function Projects() {
     const [projects, setProjects] = React.useState<IProject[]>([]);
@@ -40,6 +41,8 @@ export default function Projects() {
             <Table.Column title="Project Name" dataIndex="name" key="name"/>
             <Table.Column title="Created At" dataIndex="created_at" key="created_at"
                           render={(text: string) => new Date(text).toLocaleDateString()}/>
+            <Table.Column title="Stage" dataIndex="stage" key="stage"
+                          render={(text: string) => getProjectStageLabel(text as ProjectStageEnum)}/>
             <Table.Column title="Actions" key="actions"
                           render={(_text: string, record: IProject) => (
                               <span>

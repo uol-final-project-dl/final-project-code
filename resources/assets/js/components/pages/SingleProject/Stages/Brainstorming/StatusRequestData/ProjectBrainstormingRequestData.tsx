@@ -43,28 +43,32 @@ export default function ProjectBrainstormingRequestData({project}: { project: IP
                     }}
                     maxCount={5}
                 >
-                    <button className={'ant-btn ant-btn-primary'}>
+                    <Button
+                        className={'ant-btn ant-btn-primary'}
+                        type={'default'}
+                    >
                         Upload Request Data
-                    </button>
+                    </Button>
                 </Upload>
 
-                <div>
-                    <div className={'mt-4'}>
-                        Currently uploaded documents:
-                    </div>
-                    {project.project_documents.map(
-                        (document, i) => (
-                            <div key={i} className={'mt-2'}>
-                                <span className={'text-bold'}>{document.filename}</span>
-                                <span className={'text-muted'}> ({document.type})</span>
-                            </div>
-                        )
-                    )}
-                </div>
+                {project.project_documents.length > 0 ?
+                    <div>
+                        <div className={'mt-4'}>
+                            Currently uploaded documents:
+                        </div>
+                        {project.project_documents.map(
+                            (document, i) => (
+                                <div key={i} className={'mt-2'}>
+                                    <span className={'text-bold'}>{document.filename}</span>
+                                    <span className={'text-muted'}> ({document.type})</span>
+                                </div>
+                            )
+                        )}
+                    </div> : null}
 
                 <div className={'mt-4'}>
                     <Button type={'primary'} onClick={() => goToNextStatus()}>
-                        Finish uploading files
+                        Start Prototyping
                     </Button>
                 </div>
             </div>

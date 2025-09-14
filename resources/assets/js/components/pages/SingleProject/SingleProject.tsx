@@ -5,7 +5,7 @@ import {Spin} from "antd";
 import {useParams} from "react-router-dom";
 import ProjectBrainstorming from "./Stages/Brainstorming/ProjectBrainstorming";
 import {useDispatch, useSelector} from "react-redux";
-import {ProjectStageEnum} from "../../../enums/ProjectStageEnum";
+import {getProjectStageLabel, ProjectStageEnum} from "../../../enums/ProjectStageEnum";
 import ProjectIdeation from "./Stages/Ideation/ProjectIdeation";
 import ProjectPrototyping from "./Stages/Prototyping/ProjectPrototyping";
 
@@ -34,8 +34,12 @@ export default function SingleProject() {
     }
 
     return project ? <div>
-            <div className={'d-flex justify-content-start mb-4 text-bold'}>
-                {project.name}
+            <div className={'d-flex justify-content-start h4 mb-4 text-bold'}>
+                Project Name: {project.name}
+            </div>
+
+            <div className={'d-flex justify-content-start mb-4 h5 text-bold'}>
+                Project Stage: {getProjectStageLabel(project.stage as ProjectStageEnum)}
             </div>
 
             <div>

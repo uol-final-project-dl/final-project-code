@@ -7,7 +7,15 @@ import {Content, Header} from 'antd/es/layout/layout';
 import './styles.less';
 import {Layout as AntdLayout, Menu} from "antd";
 import Sider from 'antd/es/layout/Sider';
-import {DashboardFilled, DoubleLeftOutlined, DoubleRightOutlined, SettingFilled, StarFilled} from "@ant-design/icons";
+import {
+    DashboardFilled,
+    DeploymentUnitOutlined,
+    DoubleLeftOutlined,
+    DoubleRightOutlined,
+    HomeOutlined,
+    SettingOutlined,
+    StarOutlined
+} from "@ant-design/icons";
 import {ItemType, MenuItemType} from "antd/es/menu/interface";
 import UserRoutes from "../../utilities/UserRoutes";
 
@@ -23,9 +31,9 @@ const Layout = ({selectedKey, title, children}: IProps) => {
     const [collapsed, setCollapsed] = React.useState<boolean>(false);
 
     const ICON_MAP = {
-        [UserRoutes.HOME]: <DashboardFilled/> as React.ReactNode,
-        [UserRoutes.PROJECTS]: <StarFilled/> as React.ReactNode,
-        [UserRoutes.SETTINGS]: <SettingFilled/> as React.ReactNode,
+        [UserRoutes.HOME]: <HomeOutlined/> as React.ReactNode,
+        [UserRoutes.PROJECTS]: <StarOutlined/> as React.ReactNode,
+        [UserRoutes.SETTINGS]: <SettingOutlined/> as React.ReactNode,
     };
 
     const menuItems: ItemType<MenuItemType>[] = [
@@ -62,10 +70,9 @@ const Layout = ({selectedKey, title, children}: IProps) => {
                    trigger={collapsed ? <DoubleRightOutlined/> : <DoubleLeftOutlined/>}
                    className={'layout-sider'}
             >
-                <div className={'layout-sider-logo'}>
-                    <div>
-
-                    </div>
+                <div className={'layout-sider-logo d-flex align-items-center justify-content-center'}
+                     style={{background: '#002140'}}>
+                    <DeploymentUnitOutlined style={{color: 'white', fontSize: '40px'}}/>
                 </div>
                 <Menu
                     mode="inline"
@@ -78,6 +85,7 @@ const Layout = ({selectedKey, title, children}: IProps) => {
             <AntdLayout>
                 <div className={'layout-header'}>
                     <Header
+                        className={'h3 d-flex align-items-center justify-content-start mb-0'}
                         style={{
                             backgroundColor: "#fff",
                         }}
@@ -85,7 +93,7 @@ const Layout = ({selectedKey, title, children}: IProps) => {
                         {title}
                     </Header>
                 </div>
-                <Content className={'layout-content'}>
+                <Content className={'layout-content' + (selectedKey === UserRoutes.HOME ? ' layout-content-home' : '')}>
                     {children}
                 </Content>
             </AntdLayout>

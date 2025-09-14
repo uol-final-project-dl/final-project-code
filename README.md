@@ -30,7 +30,7 @@ To run the project, please follow these steps:
 11. Build the frontend assets:
    ```bash
    yarn watch
-    ```
+   ```
 12. Start the queue worker
     ```bash
     docker compose run --rm artisan queue:work
